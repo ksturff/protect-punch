@@ -90,7 +90,7 @@ monkeys = [];
 
 score = 0;
 spawnTimer = 0;
-speed = 1.2;
+speed = 1.0;
 
 monkeysDefeated = 0;
 
@@ -130,7 +130,7 @@ monkeys.push({
 x:x,
 y:y,
 size: type==="fast" ? 14 : 20,
-speed: type==="fast" ? speed*1.8 : speed,
+speed: type==="fast" ? speed*2.2 : speed,
 hit:false,
 vx:0,
 vy:0
@@ -306,7 +306,7 @@ bestScore=score;
 }
 
 score += 0.016;
-speed = 1.2 + score * 0.03;
+speed = 1.0 + score * 0.02;
 
 }
 
@@ -458,7 +458,7 @@ ctx.fillStyle="white";
 
 ctx.font="16px 'Press Start 2P'";
 ctx.fillText("SURVIVAL TIME", width/2,420);
-   
+
 ctx.font="22px 'Press Start 2P'";
 ctx.fillText(finalTime.toFixed(1)+" SEC", width/2,460);
 
