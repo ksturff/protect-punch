@@ -126,10 +126,18 @@ let type="normal";
 
 if(Math.random()<0.25) type="fast";
 
+/* slight random size variation — between 0.85x and 1.15x normal */
+const sizeVariation = 0.85 + Math.random() * 0.3;
+const baseSize = type==="fast" ? 14 : 20;
+const finalSize = Math.round(baseSize * sizeVariation);
+const baseDrawSize = 64;
+const finalDrawSize = Math.round(baseDrawSize * sizeVariation);
+
 monkeys.push({
 x:x,
 y:y,
-size: type==="fast" ? 14 : 20,
+size: finalSize,
+drawSize: finalDrawSize,
 speed: type==="fast" ? speed*2.2 : speed,
 hit:false,
 vx:0,
@@ -306,7 +314,13 @@ bestScore=score;
 }
 
 score += 0.016;
-speed = 1.0 + score * 0.02;
+
+/* flat speed for first 10 seconds, then gradually ramps up */
+if(score < 10){
+speed = 1.0;
+} else {
+speed = 1.0 + (score - 10) * 0.02;
+}
 
 }
 
@@ -384,16 +398,18 @@ const dy=punch.y-m.y;
 
 const angle=Math.atan2(dy,dx)-Math.PI/2;
 
+const half=m.drawSize/2;
+
 ctx.save();
 ctx.translate(m.x,m.y);
 ctx.rotate(angle);
 
 ctx.drawImage(
 monkeyFrames[currentFrame],
--32,
--32,
-64,
-64
+-half,
+-half,
+m.drawSize,
+m.drawSize
 );
 
 ctx.restore();
