@@ -83,7 +83,8 @@ x: width/2,
 y: height/2,
 size:45,
 state:"neutral",
-happyTimer:0
+happyTimer:0,
+angle:0
 };
 
 monkeys = [];
@@ -126,8 +127,7 @@ let type="normal";
 
 if(Math.random()<0.25) type="fast";
 
-/* slight random size variation — between 0.85x and 1.15x normal */
-const sizeVariation = 1.15 + Math.random() * 0.3;
+const sizeVariation = 1.15;
 const baseSize = type==="fast" ? 14 : 20;
 const finalSize = Math.round(baseSize * sizeVariation);
 const baseDrawSize = 64;
@@ -171,6 +171,9 @@ const rect = canvas.getBoundingClientRect();
 
 const mouseX = (e.clientX-rect.left)*(canvas.width/rect.width);
 const mouseY = (e.clientY-rect.top)*(canvas.height/rect.height);
+
+/* update punch facing angle toward click */
+punch.angle = Math.atan2(mouseY - punch.y, mouseX - punch.x);
 
 for(let i=monkeys.length-1;i>=0;i--){
 
@@ -381,13 +384,13 @@ let punchSprite=punchNeutral;
 if(punch.state==="happy") punchSprite=punchHappy;
 if(punch.state==="sad") punchSprite=punchSad;
 
-ctx.drawImage(
-punchSprite,
-punch.x-64,
-punch.y-64,
-128,
-128
-);
+/* draw punch rotated toward last click */
+
+ctx.save();
+ctx.translate(punch.x, punch.y);
+ctx.rotate(punch.angle);
+ctx.drawImage(punchSprite, -64, -64, 128, 128);
+ctx.restore();
 
 /* monkeys */
 
@@ -418,7 +421,7 @@ ctx.restore();
 
 /* HUD */
 
-ctx.fillStyle="black";
+ctx.fillStyle="#FFEB3B";
 ctx.font="20px Arial";
 ctx.textAlign="left";
 
