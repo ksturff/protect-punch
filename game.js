@@ -464,7 +464,7 @@ ctx.fillText("PUNCH GOT BULLIED!", width/2,90+pulse);
 
 ctx.drawImage(
 punchSad,
-width/2-64,
+width/2-100,
 160,
 200,
 200
