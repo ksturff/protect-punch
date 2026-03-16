@@ -349,8 +349,8 @@ let bob = Math.sin(Date.now()*0.004)*10;
 
 ctx.drawImage(
 punchNeutral,
-width/2-64,
-260 + bob,
+width/2-80,
+220 + bob,
 160,
 160
 );
