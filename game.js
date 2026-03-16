@@ -7,6 +7,7 @@ const width = canvas.width;
 const height = canvas.height;
 
 let gameState = "start"; // start, playing, irisClosing, end
+let startClicked = false;
 
 let punch;
 let monkeys;
@@ -77,6 +78,7 @@ punchSad.src = "assets/punch/sad.png";
 function resetGame(){
 
 gameState = "start";
+startClicked = false;
 
 punch = {
 x: width/2,
@@ -154,13 +156,17 @@ canvas.addEventListener("click",function(e){
 
 if(gameState==="start"){
 
-gameState="playing";
-
-/* start background music */
-
+if(!startClicked){
+/* first click — start music, stay on start screen */
+startClicked = true;
 backgroundMusic.currentTime = 0;
 backgroundMusic.play();
+return;
+}
 
+/* second click — start the game */
+gameState="playing";
+backgroundMusic.currentTime = 0;
 return;
 
 }
@@ -198,6 +204,7 @@ m.vy = Math.sin(angle) * -6;
 punch.state="happy";
 punch.happyTimer=45;
 punch.facing = m.x < punch.x ? 1 : -1;
+
 }
 
 }
@@ -362,7 +369,13 @@ ctx.fillText("THEY REACH PUNCH", width/2,470);
 
 ctx.fillStyle="#FFE135";
 ctx.font="18px 'Press Start 2P'";
+
+/* change prompt based on whether music has started */
+if(!startClicked){
 ctx.fillText("CLICK TO START", width/2,540);
+} else {
+ctx.fillText("CLICK TO PLAY", width/2,540);
+}
 
 ctx.fillStyle="white";
 ctx.font="12px 'Press Start 2P'";
@@ -381,7 +394,7 @@ let punchSprite=punchNeutral;
 if(punch.state==="happy") punchSprite=punchHappy;
 if(punch.state==="sad") punchSprite=punchSad;
 
-/* draw punch — flip left or right only when happy */
+/* draw punch — flip based on facing */
 
 ctx.save();
 ctx.translate(punch.x, punch.y);
@@ -465,7 +478,7 @@ ctx.fillText("PUNCH GOT BULLIED!", width/2,90+pulse);
 ctx.drawImage(
 punchSad,
 width/2-100,
-160,
+120,
 200,
 200
 );
