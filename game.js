@@ -83,7 +83,7 @@ startClicked = false;
 punch = {
 x: width/2,
 y: height/2,
-size: 35,
+size: 45,
 state: "neutral",
 happyTimer: 0,
 facing: 1
