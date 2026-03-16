@@ -458,16 +458,16 @@ width/2-64,
 ctx.fillStyle="white";
 
 ctx.font="16px 'Press Start 2P'";
-ctx.fillText("SURVIVAL TIME", width/2,390);
-
+ctx.fillText("SURVIVAL TIME", width/2,420);
+   
 ctx.font="22px 'Press Start 2P'";
-ctx.fillText(finalTime.toFixed(1)+" SEC", width/2,430);
+ctx.fillText(finalTime.toFixed(1)+" SEC", width/2,460);
 
 ctx.font="16px 'Press Start 2P'";
-ctx.fillText("MONKEYS ELIMINATED", width/2,490);
+ctx.fillText("MONKEYS ELIMINATED", width/2,510);
 
 ctx.font="22px 'Press Start 2P'";
-ctx.fillText(finalMonkeys, width/2,530);
+ctx.fillText(finalMonkeys, width/2,550);
 
 }
 
