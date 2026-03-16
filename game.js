@@ -3,7 +3,7 @@ const ctx = canvas.getContext("2d");
 
 const restartBtn = document.getElementById("restartBtn");
 const shareBtn = document.getElementById("shareBtn");
-
+ctx.drawImage(
 const width = canvas.width;
 const height = canvas.height;
 
@@ -372,8 +372,8 @@ ctx.drawImage(
 punchSprite,
 punch.x-64,
 punch.y-64,
-200,
-200
+128,
+128
 );
 
 /* monkeys */
