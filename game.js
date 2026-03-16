@@ -115,11 +115,11 @@ return mx > x - w/2 && mx < x + w/2 && my > y - h/2 && my < y + h/2;
 }
 
 /* button positions */
-const btnY = height * 0.88;
-const btnW = 180;
-const btnH = 48;
-const playBtnX = width/2 - 100;
-const shareBtnX = width/2 + 100;
+const btnY = height * 0.95;
+const btnW = 160;
+const btnH = 44;
+const playBtnX = width/2 - 160;
+const shareBtnX = width/2 + 160;
 
 function resetGame(){
 
