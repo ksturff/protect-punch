@@ -451,8 +451,8 @@ ctx.drawImage(
 punchSad,
 width/2-64,
 220,
-128,
-128
+200,
+200
 );
 
 ctx.fillStyle="white";
