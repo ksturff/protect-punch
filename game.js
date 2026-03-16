@@ -84,7 +84,7 @@ y: height/2,
 size:45,
 state:"neutral",
 happyTimer:0,
-angle:0
+facing:1
 };
 
 monkeys = [];
@@ -172,9 +172,6 @@ const rect = canvas.getBoundingClientRect();
 const mouseX = (e.clientX-rect.left)*(canvas.width/rect.width);
 const mouseY = (e.clientY-rect.top)*(canvas.height/rect.height);
 
-/* update punch facing angle toward click */
-punch.angle = Math.atan2(mouseY - punch.y, mouseX - punch.x);
-
 for(let i=monkeys.length-1;i>=0;i--){
 
 const m = monkeys[i];
@@ -200,6 +197,7 @@ m.vy = Math.sin(angle) * -6;
 
 punch.state="happy";
 punch.happyTimer=45;
+punch.facing = mouseX < punch.x ? -1 : 1;
 
 }
 
@@ -384,11 +382,13 @@ let punchSprite=punchNeutral;
 if(punch.state==="happy") punchSprite=punchHappy;
 if(punch.state==="sad") punchSprite=punchSad;
 
-/* draw punch rotated toward last click */
+/* draw punch — flip left or right only when happy */
 
 ctx.save();
 ctx.translate(punch.x, punch.y);
-ctx.rotate(punch.angle);
+if(punch.state==="happy"){
+ctx.scale(punch.facing, 1);
+}
 ctx.drawImage(punchSprite, -64, -64, 128, 128);
 ctx.restore();
 
