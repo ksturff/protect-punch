@@ -140,7 +140,7 @@ x:x,
 y:y,
 size: finalSize,
 drawSize: finalDrawSize,
-speed: type==="fast" ? speed*2.2 : speed,
+speed: type==="fast" ? speed*1.5 : speed,
 hit:false,
 vx:0,
 vy:0
@@ -187,7 +187,7 @@ const dy = mouseY-m.y;
 
 const dist = Math.sqrt(dx*dx+dy*dy);
 
-if(dist < m.size + 12){
+if(dist < m.size + 20){
 
 m.hit = true;
 
