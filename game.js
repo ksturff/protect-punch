@@ -3,7 +3,6 @@ const ctx = canvas.getContext("2d");
 
 const restartBtn = document.getElementById("restartBtn");
 const shareBtn = document.getElementById("shareBtn");
-ctx.drawImage(
 const width = canvas.width;
 const height = canvas.height;
 
