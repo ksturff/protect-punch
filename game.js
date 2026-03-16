@@ -127,7 +127,7 @@ let type="normal";
 if(Math.random()<0.25) type="fast";
 
 /* slight random size variation — between 0.85x and 1.15x normal */
-const sizeVariation = 0.85 + Math.random() * 0.3;
+const sizeVariation = 1.15 + Math.random() * 0.3;
 const baseSize = type==="fast" ? 14 : 20;
 const finalSize = Math.round(baseSize * sizeVariation);
 const baseDrawSize = 64;
