@@ -351,13 +351,13 @@ ctx.drawImage(
 punchNeutral,
 width/2-64,
 260 + bob,
-128,
-128
+160,
+160
 );
 
 ctx.fillStyle="white";
 ctx.font="16px 'Press Start 2P'";
-ctx.fillText("CLICK MONKEYS BEFORE", width/2,440);
+ctx.fillText("ELIMINATE MONKEYS BEFORE", width/2,440);
 ctx.fillText("THEY REACH PUNCH", width/2,470);
 
 ctx.fillStyle="#FFE135";
