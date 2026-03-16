@@ -338,8 +338,8 @@ ctx.drawImage(
 punchNeutral,
 width/2-64,
 260 + bob,
-128,
-128
+200,
+200
 );
 
 ctx.fillStyle="white";
