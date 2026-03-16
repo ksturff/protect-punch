@@ -6,7 +6,7 @@ const shareBtn = document.getElementById("shareBtn");
 const width = canvas.width;
 const height = canvas.height;
 
-let gameState = "start"; // start, playing, irisClosing, end
+let gameState = "start";
 let startClicked = false;
 
 let punch;
@@ -83,10 +83,10 @@ startClicked = false;
 punch = {
 x: width/2,
 y: height/2,
-size:45,
-state:"neutral",
-happyTimer:0,
-facing:1
+size: 35,
+state: "neutral",
+happyTimer: 0,
+facing: 1
 };
 
 monkeys = [];
@@ -104,8 +104,6 @@ restartBtn.style.display="none";
 shareBtn.style.display="none";
 
 irisRadius = 900;
-
-/* reset music */
 
 backgroundMusic.pause();
 backgroundMusic.currentTime = 0;
@@ -157,14 +155,12 @@ canvas.addEventListener("click",function(e){
 if(gameState==="start"){
 
 if(!startClicked){
-/* first click — start music, stay on start screen */
 startClicked = true;
 backgroundMusic.currentTime = 0;
 backgroundMusic.play();
 return;
 }
 
-/* second click — start the game */
 gameState="playing";
 backgroundMusic.currentTime = 0;
 return;
@@ -191,8 +187,6 @@ if(dist < m.size + 20){
 
 m.hit = true;
 
-/* punch sound */
-
 punchSound.currentTime = 0;
 punchSound.play();
 
@@ -215,8 +209,6 @@ function update(){
 
 if(gameState!=="playing") return;
 
-/* animate monkeys */
-
 frameTimer++;
 
 if(frameTimer > frameSpeed){
@@ -227,8 +219,6 @@ if(currentFrame >= monkeyFrames.length) currentFrame = 0;
 frameTimer = 0;
 
 }
-
-/* spawn */
 
 spawnTimer++;
 
@@ -246,15 +236,11 @@ spawnTimer = 0;
 
 }
 
-/* punch emotion */
-
 if(punch.happyTimer > 0){
 punch.happyTimer--;
 if(punch.happyTimer === 0)
 punch.state="neutral";
 }
-
-/* monkeys */
 
 for(let i=monkeys.length-1;i>=0;i--){
 
@@ -293,8 +279,6 @@ m.vy += (targetVY - m.vy) * 0.08;
 m.x += m.vx;
 m.y += m.vy;
 
-/* game over */
-
 if(dist < punch.size){
 
 gameState="irisClosing";
@@ -302,11 +286,7 @@ gameState="irisClosing";
 finalTime=score;
 finalMonkeys=monkeysDefeated;
 
-/* play lose sound */
-
 loseSound.play();
-
-/* stop music */
 
 backgroundMusic.pause();
 
@@ -322,7 +302,6 @@ bestScore=score;
 
 score += 0.016;
 
-/* flat speed for first 10 seconds, then gradually ramps up */
 if(score < 10){
 speed = 1.0;
 } else {
@@ -349,37 +328,36 @@ ctx.fillRect(0,0,width,height);
 ctx.textAlign="center";
 
 ctx.fillStyle="#FFE135";
-ctx.font="56px 'Luckiest Guy'";
-ctx.fillText("PROTECT PUNCH", width/2,180);
+ctx.font="72px 'Luckiest Guy'";
+ctx.fillText("PROTECT PUNCH", width/2, height*0.22);
 
-let bob = Math.sin(Date.now()*0.004)*10;
+let bob = Math.sin(Date.now()*0.004)*8;
 
 ctx.drawImage(
 punchNeutral,
-width/2-80,
-220 + bob,
-160,
-160
+width/2-70,
+height*0.28 + bob,
+140,
+140
 );
 
 ctx.fillStyle="white";
-ctx.font="16px 'Press Start 2P'";
-ctx.fillText("ELIMINATE MONKEYS BEFORE", width/2,440);
-ctx.fillText("THEY REACH PUNCH", width/2,470);
+ctx.font="13px 'Press Start 2P'";
+ctx.fillText("ELIMINATE MONKEYS BEFORE", width/2, height*0.78);
+ctx.fillText("THEY REACH PUNCH", width/2, height*0.88);
 
 ctx.fillStyle="#FFE135";
-ctx.font="18px 'Press Start 2P'";
+ctx.font="15px 'Press Start 2P'";
 
-/* change prompt based on whether music has started */
 if(!startClicked){
-ctx.fillText("TAP TO PLAY", width/2,540);
+ctx.fillText("CLICK TO START", width/2, height*0.96);
 } else {
-ctx.fillText("TAP TO PLAY", width/2,540);
+ctx.fillText("CLICK TO PLAY", width/2, height*0.96);
 }
 
 ctx.fillStyle="white";
-ctx.font="12px 'Press Start 2P'";
-ctx.fillText("BEST TIME: "+bestScore.toFixed(1)+" SEC", width/2,80);
+ctx.font="11px 'Press Start 2P'";
+ctx.fillText("BEST TIME: "+bestScore.toFixed(1)+" SEC", width/2, height*0.1);
 
 return;
 
@@ -394,15 +372,11 @@ let punchSprite=punchNeutral;
 if(punch.state==="happy") punchSprite=punchHappy;
 if(punch.state==="sad") punchSprite=punchSad;
 
-/* draw punch — flip based on facing */
-
 ctx.save();
 ctx.translate(punch.x, punch.y);
 ctx.scale(punch.facing, 1);
 ctx.drawImage(punchSprite, -64, -64, 128, 128);
 ctx.restore();
-
-/* monkeys */
 
 monkeys.forEach(m=>{
 
@@ -429,16 +403,12 @@ ctx.restore();
 
 });
 
-/* HUD */
-
 ctx.fillStyle="#FFEB3B";
-ctx.font="20px Arial";
+ctx.font="18px Arial";
 ctx.textAlign="left";
 
 ctx.fillText("Time: "+score.toFixed(1),10,25);
-ctx.fillText("Best: "+bestScore.toFixed(1),10,50);
-
-/* IRIS CLOSE */
+ctx.fillText("Best: "+bestScore.toFixed(1),10,48);
 
 if(gameState==="irisClosing"){
 
@@ -456,46 +426,44 @@ gameState="end";
 
 }
 
-/* END SCREEN */
-
 if(gameState==="end"){
 
 ctx.fillStyle="black";
 ctx.fillRect(0,0,width,height);
 
-let pulse = Math.sin(Date.now()*0.005)*6;
+let pulse = Math.sin(Date.now()*0.005)*5;
 
 ctx.textAlign="center";
 
 ctx.lineWidth = 8;
 ctx.strokeStyle = "#2a2a2a";
 ctx.fillStyle = "#FFE135";
-ctx.font = "48px 'Luckiest Guy'";
+ctx.font = "64px 'Luckiest Guy'";
 
-ctx.strokeText("PUNCH GOT BULLIED!", width/2,90+pulse);
-ctx.fillText("PUNCH GOT BULLIED!", width/2,90+pulse);
+ctx.strokeText("PUNCH GOT BULLIED!", width/2, height*0.18+pulse);
+ctx.fillText("PUNCH GOT BULLIED!", width/2, height*0.18+pulse);
 
 ctx.drawImage(
 punchSad,
-width/2-100,
-120,
-200,
-200
+width/2-70,
+height*0.22,
+140,
+140
 );
 
 ctx.fillStyle="white";
 
-ctx.font="16px 'Press Start 2P'";
-ctx.fillText("SURVIVAL TIME", width/2,420);
+ctx.font="13px 'Press Start 2P'";
+ctx.fillText("SURVIVAL TIME", width/2, height*0.72);
 
-ctx.font="22px 'Press Start 2P'";
-ctx.fillText(finalTime.toFixed(1)+" SEC", width/2,460);
+ctx.font="20px 'Press Start 2P'";
+ctx.fillText(finalTime.toFixed(1)+" SEC", width/2, height*0.82);
 
-ctx.font="16px 'Press Start 2P'";
-ctx.fillText("MONKEYS ELIMINATED", width/2,510);
+ctx.font="13px 'Press Start 2P'";
+ctx.fillText("MONKEYS ELIMINATED", width/2, height*0.90);
 
-ctx.font="22px 'Press Start 2P'";
-ctx.fillText(finalMonkeys, width/2,550);
+ctx.font="20px 'Press Start 2P'";
+ctx.fillText(finalMonkeys, width/2, height*0.98);
 
 }
 
@@ -511,8 +479,6 @@ requestAnimationFrame(loop);
 }
 
 loop();
-
-/* buttons */
 
 restartBtn.onclick=function(){
 resetGame();
