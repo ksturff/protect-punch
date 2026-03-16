@@ -189,7 +189,7 @@ m.vx = Math.cos(angle) * -6;
 m.vy = Math.sin(angle) * -6;
 
 punch.state="happy";
-punch.happyTimer=15;
+punch.happyTimer=45;
 
 }
 
