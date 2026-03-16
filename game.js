@@ -372,9 +372,9 @@ ctx.font="18px 'Press Start 2P'";
 
 /* change prompt based on whether music has started */
 if(!startClicked){
-ctx.fillText("CLICK TO START", width/2,540);
+ctx.fillText("TAP TO PLAY", width/2,540);
 } else {
-ctx.fillText("CLICK TO PLAY", width/2,540);
+ctx.fillText("TAP TO PLAY", width/2,540);
 }
 
 ctx.fillStyle="white";
