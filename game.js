@@ -75,6 +75,52 @@ punchHappy.src = "assets/punch/happy.png";
 const punchSad = new Image();
 punchSad.src = "assets/punch/sad.png";
 
+/* ---------------------------
+   CANVAS BUTTON HELPERS
+---------------------------- */
+
+function drawButton(label, x, y, w, h, color){
+ctx.save();
+
+/* shadow */
+ctx.shadowColor = "rgba(0,0,0,0.4)";
+ctx.shadowBlur = 8;
+ctx.shadowOffsetY = 4;
+
+/* background */
+ctx.fillStyle = color;
+ctx.beginPath();
+ctx.roundRect(x - w/2, y - h/2, w, h, 12);
+ctx.fill();
+
+/* border */
+ctx.shadowBlur = 0;
+ctx.shadowOffsetY = 0;
+ctx.strokeStyle = "rgba(255,255,255,0.3)";
+ctx.lineWidth = 2;
+ctx.stroke();
+
+/* text */
+ctx.fillStyle = "white";
+ctx.font = "bold 16px 'Press Start 2P'";
+ctx.textAlign = "center";
+ctx.textBaseline = "middle";
+ctx.fillText(label, x, y);
+
+ctx.restore();
+}
+
+function isInsideButton(mx, my, x, y, w, h){
+return mx > x - w/2 && mx < x + w/2 && my > y - h/2 && my < y + h/2;
+}
+
+/* button positions */
+const btnY = height * 0.88;
+const btnW = 180;
+const btnH = 48;
+const playBtnX = width/2 - 100;
+const shareBtnX = width/2 + 100;
+
 function resetGame(){
 
 gameState = "start";
@@ -152,6 +198,10 @@ vy:0
 
 canvas.addEventListener("click",function(e){
 
+const rect = canvas.getBoundingClientRect();
+const mouseX = (e.clientX-rect.left)*(canvas.width/rect.width);
+const mouseY = (e.clientY-rect.top)*(canvas.height/rect.height);
+
 if(gameState==="start"){
 
 if(!startClicked){
@@ -167,12 +217,28 @@ return;
 
 }
 
+if(gameState==="end"){
+
+if(isInsideButton(mouseX, mouseY, playBtnX, btnY, btnW, btnH)){
+resetGame();
+return;
+}
+
+if(isInsideButton(mouseX, mouseY, shareBtnX, btnY, btnW, btnH)){
+const text = "I survived "+finalTime.toFixed(1)+" seconds and eliminated "+finalMonkeys+" monkeys in Protect Punch 🐒";
+const url = window.location.href;
+const twitter = "https://twitter.com/intent/tweet?text="+encodeURIComponent(text)+"&url="+encodeURIComponent(url);
+const facebook = "https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url);
+const choice = prompt("Share your score!\n\n1 = Twitter/X\n2 = Facebook\n3 = Copy Link");
+if(choice==="1") window.open(twitter,"_blank");
+else if(choice==="2") window.open(facebook,"_blank");
+else if(choice==="3"){ navigator.clipboard.writeText(url); alert("Link copied!"); }
+return;
+}
+
+}
+
 if(gameState!=="playing") return;
-
-const rect = canvas.getBoundingClientRect();
-
-const mouseX = (e.clientX-rect.left)*(canvas.width/rect.width);
-const mouseY = (e.clientY-rect.top)*(canvas.height/rect.height);
 
 for(let i=monkeys.length-1;i>=0;i--){
 
@@ -212,12 +278,9 @@ if(gameState!=="playing") return;
 frameTimer++;
 
 if(frameTimer > frameSpeed){
-
 currentFrame++;
 if(currentFrame >= monkeyFrames.length) currentFrame = 0;
-
 frameTimer = 0;
-
 }
 
 spawnTimer++;
@@ -226,20 +289,14 @@ let spawnRate = 80 - score*0.35;
 if(spawnRate < 25) spawnRate = 25;
 
 if(spawnTimer > spawnRate){
-
 spawnMonkey();
-
-if(score > 35 && Math.random() < 0.35)
-spawnMonkey();
-
+if(score > 35 && Math.random() < 0.35) spawnMonkey();
 spawnTimer = 0;
-
 }
 
 if(punch.happyTimer > 0){
 punch.happyTimer--;
-if(punch.happyTimer === 0)
-punch.state="neutral";
+if(punch.happyTimer === 0) punch.state="neutral";
 }
 
 for(let i=monkeys.length-1;i>=0;i--){
@@ -247,27 +304,19 @@ for(let i=monkeys.length-1;i>=0;i--){
 const m = monkeys[i];
 
 if(m.hit){
-
 m.x += m.vx;
 m.y += m.vy;
-
 m.vx *= 0.85;
 m.vy *= 0.85;
-
 if(Math.abs(m.vx)<0.5 && Math.abs(m.vy)<0.5){
-
 monkeys.splice(i,1);
 monkeysDefeated++;
-
 }
-
 continue;
-
 }
 
 const dx = punch.x-m.x;
 const dy = punch.y-m.y;
-
 const dist = Math.sqrt(dx*dx+dy*dy)||0.001;
 
 const targetVX = (dx/dist) * m.speed;
@@ -282,19 +331,13 @@ m.y += m.vy;
 if(dist < punch.size){
 
 gameState="irisClosing";
-
 finalTime=score;
 finalMonkeys=monkeysDefeated;
 
 loseSound.play();
-
 backgroundMusic.pause();
 
-restartBtn.style.display="inline-block";
-shareBtn.style.display="inline-block";
-
-if(score > bestScore)
-bestScore=score;
+if(score > bestScore) bestScore=score;
 
 }
 
@@ -333,13 +376,7 @@ ctx.fillText("PROTECT PUNCH", width/2, height*0.22);
 
 let bob = Math.sin(Date.now()*0.004)*8;
 
-ctx.drawImage(
-punchNeutral,
-width/2-70,
-height*0.28 + bob,
-140,
-140
-);
+ctx.drawImage(punchNeutral, width/2-70, height*0.28+bob, 140, 140);
 
 ctx.fillStyle="white";
 ctx.font="13px 'Press Start 2P'";
@@ -348,7 +385,6 @@ ctx.fillText("THEY REACH PUNCH", width/2, height*0.88);
 
 ctx.fillStyle="#FFE135";
 ctx.font="15px 'Press Start 2P'";
-
 if(!startClicked){
 ctx.fillText("CLICK TO START", width/2, height*0.96);
 } else {
@@ -368,7 +404,6 @@ return;
 ctx.drawImage(zooBackground,0,0,width,height);
 
 let punchSprite=punchNeutral;
-
 if(punch.state==="happy") punchSprite=punchHappy;
 if(punch.state==="sad") punchSprite=punchSad;
 
@@ -379,57 +414,41 @@ ctx.drawImage(punchSprite, -64, -64, 128, 128);
 ctx.restore();
 
 monkeys.forEach(m=>{
-
 const dx=punch.x-m.x;
 const dy=punch.y-m.y;
-
 const angle=Math.atan2(dy,dx)-Math.PI/2;
-
 const half=m.drawSize/2;
-
 ctx.save();
 ctx.translate(m.x,m.y);
 ctx.rotate(angle);
-
-ctx.drawImage(
-monkeyFrames[currentFrame],
--half,
--half,
-m.drawSize,
-m.drawSize
-);
-
+ctx.drawImage(monkeyFrames[currentFrame], -half, -half, m.drawSize, m.drawSize);
 ctx.restore();
-
 });
 
+/* HUD */
 ctx.font="bold 18px Arial";
 ctx.textAlign="left";
-
 ctx.strokeStyle="black";
 ctx.lineWidth=4;
 ctx.strokeText("Time: "+score.toFixed(1),10,25);
 ctx.strokeText("Best: "+bestScore.toFixed(1),10,48);
-
 ctx.fillStyle="#FFEB3B";
 ctx.fillText("Time: "+score.toFixed(1),10,25);
 ctx.fillText("Best: "+bestScore.toFixed(1),10,48);
 
+/* IRIS CLOSE */
+
 if(gameState==="irisClosing"){
-
 irisRadius -= 18;
-
 ctx.beginPath();
 ctx.rect(0,0,width,height);
 ctx.arc(punch.x,punch.y,irisRadius,0,Math.PI*2,true);
 ctx.fillStyle="black";
 ctx.fill();
-
-if(irisRadius <= 0){
-gameState="end";
+if(irisRadius <= 0) gameState="end";
 }
 
-}
+/* END SCREEN */
 
 if(gameState==="end"){
 
@@ -439,79 +458,40 @@ ctx.fillRect(0,0,width,height);
 let pulse = Math.sin(Date.now()*0.005)*5;
 
 ctx.textAlign="center";
-
 ctx.lineWidth = 8;
 ctx.strokeStyle = "#2a2a2a";
 ctx.fillStyle = "#FFE135";
 ctx.font = "64px 'Luckiest Guy'";
-
 ctx.strokeText("PUNCH GOT BULLIED!", width/2, height*0.18+pulse);
 ctx.fillText("PUNCH GOT BULLIED!", width/2, height*0.18+pulse);
 
-ctx.drawImage(
-punchSad,
-width/2-70,
-height*0.22,
-140,
-140
-);
+ctx.drawImage(punchSad, width/2-70, height*0.22, 140, 140);
 
 ctx.fillStyle="white";
-
 ctx.font="13px 'Press Start 2P'";
-ctx.fillText("SURVIVAL TIME", width/2, height*0.72);
+ctx.fillText("SURVIVAL TIME", width/2, height*0.62);
 
 ctx.font="20px 'Press Start 2P'";
-ctx.fillText(finalTime.toFixed(1)+" SEC", width/2, height*0.82);
+ctx.fillText(finalTime.toFixed(1)+" SEC", width/2, height*0.72);
 
 ctx.font="13px 'Press Start 2P'";
-ctx.fillText("MONKEYS ELIMINATED", width/2, height*0.90);
+ctx.fillText("MONKEYS ELIMINATED", width/2, height*0.80);
 
 ctx.font="20px 'Press Start 2P'";
-ctx.fillText(finalMonkeys, width/2, height*0.98);
+ctx.fillText(finalMonkeys, width/2, height*0.88);
+
+/* canvas buttons */
+drawButton("PLAY AGAIN", playBtnX, btnY, btnW, btnH, "#27ae60");
+drawButton("SHARE", shareBtnX, btnY, btnW, btnH, "#2980b9");
 
 }
 
 }
 
 function loop(){
-
 update();
 draw();
-
 requestAnimationFrame(loop);
-
 }
 
 loop();
-
-restartBtn.onclick=function(){
-resetGame();
-};
-
-shareBtn.onclick=function(){
-
-const text =
-"I survived "+finalTime.toFixed(1)+" seconds and eliminated "+
-finalMonkeys+" monkeys in Protect Punch 🐒";
-
-const url=window.location.href;
-
-const twitter="https://twitter.com/intent/tweet?text="+
-encodeURIComponent(text)+"&url="+encodeURIComponent(url);
-
-const facebook="https://www.facebook.com/sharer/sharer.php?u="+
-encodeURIComponent(url);
-
-const choice=prompt(
-"Share your score!\n\n1 = Twitter/X\n2 = Facebook\n3 = Copy Link"
-);
-
-if(choice==="1") window.open(twitter,"_blank");
-else if(choice==="2") window.open(facebook,"_blank");
-else if(choice==="3"){
-navigator.clipboard.writeText(url);
-alert("Link copied!");
-}
-
-};
