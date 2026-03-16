@@ -386,9 +386,7 @@ if(punch.state==="sad") punchSprite=punchSad;
 
 ctx.save();
 ctx.translate(punch.x, punch.y);
-if(punch.state==="happy"){
 ctx.scale(punch.facing, 1);
-}
 ctx.drawImage(punchSprite, -64, -64, 128, 128);
 ctx.restore();
 
