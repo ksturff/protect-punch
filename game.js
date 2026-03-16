@@ -29,9 +29,9 @@ let finalMonkeys = 0;
    SOUND SYSTEM
 ---------------------------- */
 
-const punchSound = new Audio("sounds/punch.wav");
-const loseSound = new Audio("sounds/lose.wav");
-const backgroundMusic = new Audio("sounds/background.wav");
+const punchSound = new Audio("sounds/punch.mp3");
+const loseSound = new Audio("sounds/lose.mp3");
+const backgroundMusic = new Audio("sounds/background.mp3");
 
 backgroundMusic.loop = true;
 backgroundMusic.volume = 0.9;
