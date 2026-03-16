@@ -1,51 +1,66 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-
 <title>Protect Punch</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <!-- GAME FONTS -->
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
 
-body{
-margin:0;
-background:#87c7ff;
-text-align:center;
-font-family:Arial;
+* {
+box-sizing: border-box;
 }
 
-canvas{
-background:#cfe8a9;
-border:4px solid black;
-margin-top:10px;
+body {
+margin: 0;
+padding: 0;
+background: #87c7ff;
+text-align: center;
+font-family: Arial;
+overflow: hidden;
 }
 
-/* main buttons */
-
-button{
-margin-top:10px;
-padding:10px 20px;
-font-size:18px;
-cursor:pointer;
+h1 {
+margin: 8px 0 4px 0;
+font-size: clamp(16px, 4vw, 28px);
 }
 
-/* mute button */
+#gameWrapper {
+display: flex;
+justify-content: center;
+align-items: center;
+}
 
-#muteBtn{
-position:absolute;
-top:15px;
-right:20px;
-font-size:18px;
-padding:8px 14px;
+canvas {
+background: #cfe8a9;
+border: 4px solid black;
+max-width: 100vw;
+max-height: 80vh;
+width: auto;
+height: auto;
+touch-action: none;
+}
+
+button {
+margin-top: 8px;
+padding: 10px 20px;
+font-size: clamp(14px, 3vw, 18px);
+cursor: pointer;
+}
+
+#muteBtn {
+position: absolute;
+top: 10px;
+right: 10px;
+font-size: 18px;
+padding: 8px 14px;
 }
 
 </style>
-
 </head>
-
 <body>
 
 <h1>Protect Punch 🐒</h1>
@@ -54,21 +69,19 @@ padding:8px 14px;
 <button id="muteBtn">🔊 Sound</button>
 
 <!-- GAME CANVAS -->
+<div id="gameWrapper">
 <canvas id="gameCanvas" width="600" height="600"></canvas>
+</div>
 
 <br>
 
 <!-- GAME BUTTONS -->
-
 <button id="restartBtn" style="display:none;">Play Again</button>
-
 <button id="shareBtn" style="display:none;">Share Score</button>
 
 <script src="game.js"></script>
+<script data-goatcounter="https://protectpunch.goatcounter.com/count"
+      async src="//gc.zgo.at/count.js"></script>
 
-  <script data-goatcounter="https://protectpunch.goatcounter.com/count"
-        async src="//gc.zgo.at/count.js"></script>
-  
 </body>
-
 </html>
