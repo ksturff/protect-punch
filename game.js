@@ -197,8 +197,7 @@ m.vy = Math.sin(angle) * -6;
 
 punch.state="happy";
 punch.happyTimer=45;
-punch.facing = mouseX < width/2 ? -1 : 1;
-
+punch.facing = m.x < punch.x ? 1 : -1;
 }
 
 }
