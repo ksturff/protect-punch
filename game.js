@@ -372,8 +372,8 @@ ctx.drawImage(
 punchSprite,
 punch.x-64,
 punch.y-64,
-128,
-128
+200,
+200
 );
 
 /* monkeys */
