@@ -111,11 +111,11 @@ return mx > x - w/2 && mx < x + w/2 && my > y - h/2 && my < y + h/2;
 }
 
 /* button positions */
-const btnY = height * 0.88;
-const btnW = 180;
-const btnH = 48;
-const playBtnX = width/2 - 100;
-const shareBtnX = width/2 + 100;
+const btnY = height * 0.95;
+const btnW = 160;
+const btnH = 44;
+const playBtnX = width/2 - 160;
+const shareBtnX = width/2 + 160;
 
 function resetGame(){
 
@@ -376,62 +376,58 @@ ctx.drawImage(punchNeutral, width/2-70, height*0.28+bob, 140, 140);
 
 ctx.fillStyle="white";
 ctx.font="13px 'Press Start 2P'";
-ctx.fillText("protect the punch from the monkeys!", width/2, height*0.58);
+ctx.fillText("ELIMINATE MONKEYS BEFORE", width/2, height*0.78);
+ctx.fillText("THEY REACH PUNCH", width/2, height*0.88);
 
 ctx.fillStyle="#FFE135";
 ctx.font="15px 'Press Start 2P'";
-
 if(!startClicked){
 ctx.fillText("CLICK TO START", width/2, height*0.96);
 } else {
-ctx.fillText("CLICK AGAIN TO PLAY", width/2, height*0.96);
+ctx.fillText("CLICK TO PLAY", width/2, height*0.96);
 }
 
+ctx.fillStyle="white";
+ctx.font="11px 'Press Start 2P'";
+ctx.fillText("BEST TIME: "+bestScore.toFixed(1)+" SEC", width/2, height*0.1);
+
+return;
+
 }
 
-/* PLAYING SCREEN */
-
-if(gameState==="playing" || gameState==="irisClosing" || gameState==="end"){
+/* GAMEPLAY */
 
 ctx.drawImage(zooBackground,0,0,width,height);
 
 let punchSprite=punchNeutral;
-
 if(punch.state==="happy") punchSprite=punchHappy;
 if(punch.state==="sad") punchSprite=punchSad;
 
 ctx.save();
 ctx.translate(punch.x, punch.y);
 ctx.scale(punch.facing, 1);
-ctx.drawImage(punchSprite, -punch.size, -punch.size, punch.size*2, punch.size*2);
+ctx.drawImage(punchSprite, -64, -64, 128, 128);
 ctx.restore();
 
 monkeys.forEach(m=>{
-
 const dx=punch.x-m.x;
 const dy=punch.y-m.y;
-
 const angle=Math.atan2(dy,dx)-Math.PI/2;
-
 const half=m.drawSize/2;
-
 ctx.save();
 ctx.translate(m.x,m.y);
 ctx.rotate(angle);
 ctx.drawImage(monkeyFrames[currentFrame], -half, -half, m.drawSize, m.drawSize);
 ctx.restore();
-
 });
 
 /* HUD */
 ctx.font="bold 18px Arial";
 ctx.textAlign="left";
-
 ctx.strokeStyle="black";
 ctx.lineWidth=4;
 ctx.strokeText("Time: "+score.toFixed(1),10,25);
 ctx.strokeText("Best: "+bestScore.toFixed(1),10,48);
-
 ctx.fillStyle="#FFEB3B";
 ctx.fillText("Time: "+score.toFixed(1),10,25);
 ctx.fillText("Best: "+bestScore.toFixed(1),10,48);
@@ -440,13 +436,11 @@ ctx.fillText("Best: "+bestScore.toFixed(1),10,48);
 
 if(gameState==="irisClosing"){
 irisRadius -= 18;
-
 ctx.beginPath();
 ctx.rect(0,0,width,height);
 ctx.arc(punch.x,punch.y,irisRadius,0,Math.PI*2,true);
 ctx.fillStyle="black";
 ctx.fill();
-
 if(irisRadius <= 0) gameState="end";
 }
 
@@ -454,25 +448,22 @@ if(irisRadius <= 0) gameState="end";
 
 if(gameState==="end"){
 
-ctx.fillStyle="rgba(0,0,0,0.6)";
+ctx.fillStyle="black";
 ctx.fillRect(0,0,width,height);
 
 let pulse = Math.sin(Date.now()*0.005)*5;
 
 ctx.textAlign="center";
-
 ctx.lineWidth = 8;
 ctx.strokeStyle = "#2a2a2a";
 ctx.fillStyle = "#FFE135";
 ctx.font = "64px 'Luckiest Guy'";
-
 ctx.strokeText("PUNCH GOT BULLIED!", width/2, height*0.18+pulse);
 ctx.fillText("PUNCH GOT BULLIED!", width/2, height*0.18+pulse);
 
 ctx.drawImage(punchSad, width/2-70, height*0.22, 140, 140);
 
 ctx.fillStyle="white";
-
 ctx.font="13px 'Press Start 2P'";
 ctx.fillText("SURVIVAL TIME", width/2, height*0.62);
 
@@ -485,11 +476,8 @@ ctx.fillText("MONKEYS ELIMINATED", width/2, height*0.80);
 ctx.font="20px 'Press Start 2P'";
 ctx.fillText(finalMonkeys, width/2, height*0.88);
 
-/* canvas buttons */
 drawButton("PLAY AGAIN", playBtnX, btnY, btnW, btnH, "#27ae60");
 drawButton("SHARE", shareBtnX, btnY, btnW, btnH, "#2980b9");
-
-}
 
 }
 
@@ -502,34 +490,3 @@ requestAnimationFrame(loop);
 }
 
 loop();
-
-restartBtn.onclick=function(){
-resetGame();
-};
-
-shareBtn.onclick=function(){
-
-const text =
-"I survived "+finalTime.toFixed(1)+" seconds and eliminated "+
-finalMonkeys+" monkeys in Protect Punch 🐒";
-
-const url=window.location.href;
-
-const twitter="https://twitter.com/intent/tweet?text="+
-encodeURIComponent(text)+"&url="+encodeURIComponent(url);
-
-const facebook="https://www.facebook.com/sharer/sharer.php?u="+
-encodeURIComponent(url);
-
-const choice=prompt(
-"Share your score!\n\n1 = Twitter/X\n2 = Facebook\n3 = Copy Link"
-);
-
-if(choice==="1") window.open(twitter,"_blank");
-else if(choice==="2") window.open(facebook,"_blank");
-else if(choice==="3"){
-navigator.clipboard.writeText(url);
-alert("Link copied!");
-}
-
-};
