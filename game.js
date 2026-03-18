@@ -440,10 +440,13 @@ ctx.drawImage(punchNeutral, width/2-70, height*0.28+bob, 140, 140);
 
 ctx.fillStyle="white";
 ctx.font="13px 'Press Start 2P'";
-ctx.fillText("BEST: "+bestScore.toFixed(1)+" SEC", width/2, height*0.78);
+ctx.fillText("BEST: "+bestScore.toFixed(1)+" SEC", width/2, 310);
 
 ctx.font="13px 'Press Start 2P'";
-ctx.fillText("MONKEYS ELIMINATED", width/2, height*0.87);
+ctx.fillText("MONKEYS ELIMINATED", width/2, 350);
+
+ctx.font="20px 'Press Start 2P'";
+ctx.fillText(finalMonkeys, width/2, 390);
 
 ctx.font="20px 'Press Start 2P'";
 ctx.fillText(finalMonkeys, width/2, height*0.95);
