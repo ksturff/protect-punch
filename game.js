@@ -296,8 +296,6 @@ if(currentFrame >= monkeyFrames.length) currentFrame = 0;
 frameTimer = 0;
 }
 
-/* DIFFICULTY */
-
 difficultyTimer++;
 let t = difficultyTimer / 60;
 
@@ -305,7 +303,6 @@ spawnInterval = Math.max(minSpawnInterval, baseSpawnInterval - (t * 2.2));
 maxEnemiesOnScreen = 10 + Math.floor(t / 5);
 speed = 1 + (t * 0.05);
 
-/* 🔥 SPIKE LOGIC */
 spikeTimer++;
 
 if(!spikeActive && spikeTimer > 600 + Math.random()*300){
@@ -330,8 +327,6 @@ if(t > 45){
 spawnInterval *= 0.7;
 }
 
-/* SPAWN */
-
 spawnTimer++;
 
 let randomOffset = Math.random() * 10;
@@ -340,8 +335,6 @@ if(spawnTimer >= spawnInterval - randomOffset && monkeys.length < maxEnemiesOnSc
 spawnMonkey();
 spawnTimer = 0;
 }
-
-/* MONKEY + DANGER */
 
 let dangerNearby = false;
 
@@ -369,7 +362,6 @@ const dx = punch.x-m.x;
 const dy = punch.y-m.y;
 const dist = Math.sqrt(dx*dx+dy*dy)||0.001;
 
-/* 🔥 AGGRESSION NEAR PUNCH */
 let aggression = 1;
 if(dist < 120){
 aggression = 1.6;
@@ -400,7 +392,6 @@ if(score > bestScore) bestScore=score;
 
 }
 
-/* FINAL STATE */
 if(punch.happyTimer > 0){
 punch.state = "happy";
 }
@@ -420,6 +411,7 @@ score += 0.016;
 function draw(){
 
 ctx.clearRect(0,0,width,height);
+ctx.textBaseline = "middle";
 
 /* START */
 
@@ -442,26 +434,20 @@ ctx.fillStyle="white";
 ctx.font="13px 'Press Start 2P'";
 ctx.fillText("BEST: "+bestScore.toFixed(1)+" SEC", width/2, 310);
 
-ctx.font="13px 'Press Start 2P'";
 ctx.fillText("MONKEYS ELIMINATED", width/2, 350);
 
 ctx.font="20px 'Press Start 2P'";
 ctx.fillText(finalMonkeys, width/2, 390);
 
-ctx.font="20px 'Press Start 2P'";
-ctx.fillText(finalMonkeys, width/2, height*0.95);
-
 ctx.fillStyle="#FFE135";
 ctx.font="15px 'Press Start 2P'";
 ctx.fillText(startClicked ? "CLICK TO PLAY" : "CLICK TO START", width/2, height*0.96);
-
-
 
 return;
 
 }
 
-/* GAMEPLAY */
+/* GAMEPLAY + END (unchanged except spacing fix) */
 
 ctx.drawImage(zooBackground,0,0,width,height);
 
@@ -487,9 +473,6 @@ ctx.drawImage(monkeyFrames[currentFrame], -half, -half, m.drawSize, m.drawSize);
 ctx.restore();
 });
 
-
-/* IRIS */
-
 if(gameState==="irisClosing"){
 irisRadius -= 18;
 ctx.beginPath();
@@ -499,8 +482,6 @@ ctx.fillStyle="black";
 ctx.fill();
 if(irisRadius <= 0) gameState="end";
 }
-
-/* END SCREEN */
 
 if(gameState==="end"){
 
@@ -520,20 +501,21 @@ ctx.fillText("PUNCH GOT BULLIED!", width/2, height*0.18+pulse);
 ctx.drawImage(punchSad, width/2-70, height*0.22, 140, 140);
 
 ctx.fillStyle="white";
-ctx.font="13px 'Press Start 2P'";
-ctx.fillText("SURVIVAL TIME", width/2, height*0.62);
-
-ctx.font="20px 'Press Start 2P'";
-ctx.fillText(finalTime.toFixed(1)+" SEC", width/2, height*0.72);
-
-   ctx.font="13px 'Press Start 2P'";
-ctx.fillText("BEST: "+bestScore.toFixed(1)+" SEC", width/2, height*0.78);
 
 ctx.font="13px 'Press Start 2P'";
-ctx.fillText("MONKEYS ELIMINATED", width/2, height*0.80);
+ctx.fillText("SURVIVAL TIME", width/2, height*0.60);
 
 ctx.font="20px 'Press Start 2P'";
-ctx.fillText(finalMonkeys, width/2, height*0.88);
+ctx.fillText(finalTime.toFixed(1)+" SEC", width/2, height*0.68);
+
+ctx.font="13px 'Press Start 2P'";
+ctx.fillText("BEST: "+bestScore.toFixed(1)+" SEC", width/2, height*0.75);
+
+ctx.font="13px 'Press Start 2P'";
+ctx.fillText("MONKEYS ELIMINATED", width/2, height*0.83);
+
+ctx.font="20px 'Press Start 2P'";
+ctx.fillText(finalMonkeys, width/2, height*0.90);
 
 drawButton("PLAY AGAIN", playBtnX, btnY, btnW, btnH, "#27ae60");
 drawButton("SHARE", shareBtnX, btnY, btnW, btnH, "#2980b9");
