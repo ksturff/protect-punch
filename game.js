@@ -38,6 +38,12 @@ let spawnInterval = baseSpawnInterval;
 let maxEnemiesOnScreen = 10;
 
 /* ---------------------------
+   DANGER SYSTEM
+---------------------------- */
+
+let dangerRadius = 120;
+
+/* ---------------------------
    SOUND SYSTEM
 ---------------------------- */
 
@@ -287,19 +293,15 @@ difficultyTimer++;
 
 let t = difficultyTimer / 60;
 
-// spawn rate scales down (faster spawning)
 spawnInterval = Math.max(
 minSpawnInterval,
 baseSpawnInterval - (t * 2.2)
 );
 
-// more enemies allowed over time
 maxEnemiesOnScreen = 10 + Math.floor(t / 5);
 
-// global speed scaling
 speed = 1 + (t * 0.05);
 
-// late-game panic boost
 if(t > 45){
 spawnInterval *= 0.7;
 }
@@ -317,6 +319,12 @@ monkeys.length < maxEnemiesOnScreen
 spawnMonkey();
 spawnTimer = 0;
 }
+
+/* ---------------------------
+   MONKEY LOGIC + DANGER CHECK
+---------------------------- */
+
+let dangerNearby = false;
 
 if(punch.happyTimer > 0){
 punch.happyTimer--;
@@ -343,6 +351,11 @@ const dx = punch.x-m.x;
 const dy = punch.y-m.y;
 const dist = Math.sqrt(dx*dx+dy*dy)||0.001;
 
+/* danger detection */
+if(dist < dangerRadius){
+dangerNearby = true;
+}
+
 const targetVX = (dx/dist) * m.speed;
 const targetVY = (dy/dist) * m.speed;
 
@@ -365,6 +378,15 @@ if(score > bestScore) bestScore=score;
 
 }
 
+}
+
+/* apply emotional state */
+if(punch.happyTimer === 0){
+if(dangerNearby){
+punch.state = "sad";
+} else {
+punch.state = "neutral";
+}
 }
 
 score += 0.016;
