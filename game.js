@@ -440,8 +440,10 @@ ctx.drawImage(punchNeutral, width/2-70, height*0.28+bob, 140, 140);
 
 ctx.fillStyle="white";
 ctx.font="13px 'Press Start 2P'";
-ctx.fillText("ELIMINATE MONKEYS BEFORE", width/2, height*0.78);
-ctx.fillText("THEY REACH PUNCH", width/2, height*0.88);
+ctx.fillText("BEST: "+bestScore.toFixed(1)+" SEC", width/2, height*0.78);
+
+ctx.font="13px 'Press Start 2P'";
+ctx.fillText("MONKEYS ELIMINATED", width/2, height*0.86);
 
 ctx.fillStyle="#FFE135";
 ctx.font="15px 'Press Start 2P'";
