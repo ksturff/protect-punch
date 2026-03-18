@@ -26,20 +26,16 @@ let finalTime = 0;
 let finalMonkeys = 0;
 
 /* ---------------------------
-   WAVE SYSTEM (NO BREAKS)
+   CONTINUOUS DIFFICULTY SYSTEM
 ---------------------------- */
-let wave = 1;
-let waveTimer = 0;
-let waveDuration = 20 * 60;
 
-let enemiesToSpawn = 0;
-let enemiesSpawned = 0;
-let spawnInterval = 60;
-let maxEnemiesOnScreen = 12;
+let difficultyTimer = 0;
 
-function lerp(a, b, t){
-return a + (b - a) * t;
-}
+let baseSpawnInterval = 90;
+let minSpawnInterval = 20;
+let spawnInterval = baseSpawnInterval;
+
+let maxEnemiesOnScreen = 10;
 
 /* ---------------------------
    SOUND SYSTEM
@@ -90,19 +86,6 @@ punchHappy.src = "assets/punch/happy.png";
 
 const punchSad = new Image();
 punchSad.src = "assets/punch/sad.png";
-
-/* ---------------------------
-   WAVE SETUP FUNCTION
----------------------------- */
-
-function startWave(){
-waveTimer = 0;
-enemiesSpawned = 0;
-
-enemiesToSpawn = Math.floor(4 * Math.pow(1.6, wave));
-spawnInterval = lerp(150, 30, wave / 10);
-maxEnemiesOnScreen = 12 + (wave * 2);
-}
 
 /* ---------------------------
    CANVAS BUTTON HELPERS
@@ -171,8 +154,7 @@ monkeysDefeated = 0;
 finalTime = 0;
 finalMonkeys = 0;
 
-wave = 1;
-startWave();
+difficultyTimer = 0;
 
 restartBtn.style.display="none";
 shareBtn.style.display="none";
@@ -297,32 +279,42 @@ if(currentFrame >= monkeyFrames.length) currentFrame = 0;
 frameTimer = 0;
 }
 
-/* WAVE SYSTEM (CONTINUOUS) */
+/* ---------------------------
+   DIFFICULTY SCALING
+---------------------------- */
 
-waveTimer++;
+difficultyTimer++;
 
-if(waveTimer > waveDuration){
-wave++;
-startWave();
+let t = difficultyTimer / 60;
+
+// spawn rate scales down (faster spawning)
+spawnInterval = Math.max(
+minSpawnInterval,
+baseSpawnInterval - (t * 2.2)
+);
+
+// more enemies allowed over time
+maxEnemiesOnScreen = 10 + Math.floor(t / 5);
+
+// global speed scaling
+speed = 1 + (t * 0.05);
+
+// late-game panic boost
+if(t > 45){
+spawnInterval *= 0.7;
 }
 
-/* SPAWN SYSTEM */
+/* ---------------------------
+   SPAWNING
+---------------------------- */
 
 spawnTimer++;
 
-let currentInterval = spawnInterval;
-
-if(waveTimer > waveDuration * 0.85){
-currentInterval *= 0.5;
-}
-
 if(
-spawnTimer >= currentInterval &&
-enemiesSpawned < enemiesToSpawn &&
+spawnTimer >= spawnInterval &&
 monkeys.length < maxEnemiesOnScreen
 ){
 spawnMonkey();
-enemiesSpawned++;
 spawnTimer = 0;
 }
 
@@ -377,11 +369,9 @@ if(score > bestScore) bestScore=score;
 
 score += 0.016;
 
-speed = 1 + (wave * 0.08);
-
 }
 
-/* DRAW (unchanged except no break overlay) */
+/* DRAW */
 
 function draw(){
 
