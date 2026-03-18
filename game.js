@@ -26,6 +26,15 @@ let finalTime = 0;
 let finalMonkeys = 0;
 
 /* ---------------------------
+   WAVE SYSTEM (NEW)
+---------------------------- */
+let wave = 1;
+let waveTimer = 0;
+let waveDuration = 20 * 60;
+let waveBreak = 3 * 60;
+let inBreak = false;
+
+/* ---------------------------
    SOUND SYSTEM
 ---------------------------- */
 
@@ -141,6 +150,10 @@ monkeysDefeated = 0;
 
 finalTime = 0;
 finalMonkeys = 0;
+
+wave = 1;
+waveTimer = 0;
+inBreak = false;
 
 restartBtn.style.display="none";
 shareBtn.style.display="none";
@@ -279,15 +292,42 @@ if(currentFrame >= monkeyFrames.length) currentFrame = 0;
 frameTimer = 0;
 }
 
+/* WAVE SYSTEM */
+
+waveTimer++;
+
+if(inBreak){
+    if(waveTimer > waveBreak){
+        wave++;
+        waveTimer = 0;
+        inBreak = false;
+    }
+    return;
+}
+
+if(waveTimer > waveDuration){
+    waveTimer = 0;
+    inBreak = true;
+    return;
+}
+
+/* SPAWNING */
+
 spawnTimer++;
 
-let spawnRate = 80 - score*0.35;
+let spawnRate = 90 - (wave * 8);
 if(spawnRate < 25) spawnRate = 25;
 
 if(spawnTimer > spawnRate){
-spawnMonkey();
-if(score > 35 && Math.random() < 0.35) spawnMonkey();
-spawnTimer = 0;
+    spawnMonkey();
+    if(wave > 4 && Math.random() < 0.3) spawnMonkey();
+    spawnTimer = 0;
+}
+
+/* PANIC END OF WAVE */
+if(waveTimer > waveDuration - 60){
+    spawnMonkey();
+    spawnMonkey();
 }
 
 if(punch.happyTimer > 0){
@@ -341,11 +381,8 @@ if(score > bestScore) bestScore=score;
 
 score += 0.016;
 
-if(score < 10){
-speed = 1.0;
-} else {
-speed = 1.0 + (score - 10) * 0.02;
-}
+/* SPEED BASED ON WAVE */
+speed = 1.0 + (wave * 0.12);
 
 }
 
@@ -431,6 +468,22 @@ ctx.strokeText("Best: "+bestScore.toFixed(1),10,48);
 ctx.fillStyle="#FFEB3B";
 ctx.fillText("Time: "+score.toFixed(1),10,25);
 ctx.fillText("Best: "+bestScore.toFixed(1),10,48);
+
+/* WAVE UI */
+ctx.fillStyle = "#ffffff";
+ctx.font = "bold 18px Arial";
+ctx.fillText("Wave: " + wave, width - 140, 25);
+
+/* BREAK SCREEN */
+if(inBreak){
+    ctx.fillStyle = "rgba(0,0,0,0.4)";
+    ctx.fillRect(0,0,width,height);
+
+    ctx.fillStyle = "#FFE135";
+    ctx.font = "28px 'Press Start 2P'";
+    ctx.textAlign = "center";
+    ctx.fillText("CATCH YOUR BREATH", width/2, height/2);
+}
 
 /* IRIS CLOSE */
 
