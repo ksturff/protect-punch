@@ -449,7 +449,7 @@ ctx.fillText(startClicked ? "CLICK TO PLAY" : "CLICK TO START", width/2, height*
 
 ctx.fillStyle="white";
 ctx.font="11px 'Press Start 2P'";
-ctx.fillText("BEST TIME: "+bestScore.toFixed(1)+" SEC", width/2, height*0.1);
+
 
 return;
 
@@ -519,6 +519,9 @@ ctx.fillText("SURVIVAL TIME", width/2, height*0.62);
 
 ctx.font="20px 'Press Start 2P'";
 ctx.fillText(finalTime.toFixed(1)+" SEC", width/2, height*0.72);
+
+   ctx.font="13px 'Press Start 2P'";
+ctx.fillText("BEST: "+bestScore.toFixed(1)+" SEC", width/2, height*0.78);
 
 ctx.font="13px 'Press Start 2P'";
 ctx.fillText("MONKEYS ELIMINATED", width/2, height*0.80);
