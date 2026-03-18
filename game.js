@@ -38,6 +38,14 @@ let spawnInterval = baseSpawnInterval;
 let maxEnemiesOnScreen = 10;
 
 /* ---------------------------
+   🔥 SPIKE SYSTEM (NEW)
+---------------------------- */
+
+let spikeTimer = 0;
+let spikeActive = false;
+let spikeDuration = 0;
+
+/* ---------------------------
    DANGER SYSTEM (TUNED)
 ---------------------------- */
 
@@ -161,6 +169,9 @@ finalTime = 0;
 finalMonkeys = 0;
 
 difficultyTimer = 0;
+
+spikeTimer = 0;
+spikeActive = false;
 
 restartBtn.style.display="none";
 shareBtn.style.display="none";
@@ -294,6 +305,27 @@ spawnInterval = Math.max(minSpawnInterval, baseSpawnInterval - (t * 2.2));
 maxEnemiesOnScreen = 10 + Math.floor(t / 5);
 speed = 1 + (t * 0.05);
 
+/* 🔥 SPIKE LOGIC */
+spikeTimer++;
+
+if(!spikeActive && spikeTimer > 600 + Math.random()*300){
+spikeActive = true;
+spikeDuration = 120 + Math.random()*60;
+spikeTimer = 0;
+}
+
+if(spikeActive){
+spawnInterval *= 0.45;
+speed *= 1.4;
+maxEnemiesOnScreen += 6;
+
+spikeDuration--;
+
+if(spikeDuration <= 0){
+spikeActive = false;
+}
+}
+
 if(t > 45){
 spawnInterval *= 0.7;
 }
@@ -302,7 +334,9 @@ spawnInterval *= 0.7;
 
 spawnTimer++;
 
-if(spawnTimer >= spawnInterval && monkeys.length < maxEnemiesOnScreen){
+let randomOffset = Math.random() * 10;
+
+if(spawnTimer >= spawnInterval - randomOffset && monkeys.length < maxEnemiesOnScreen){
 spawnMonkey();
 spawnTimer = 0;
 }
@@ -335,15 +369,15 @@ const dx = punch.x-m.x;
 const dy = punch.y-m.y;
 const dist = Math.sqrt(dx*dx+dy*dy)||0.001;
 
-/* SMART danger detection */
-const movingTowardPunch = (m.vx * dx + m.vy * dy) > 0;
-
-if(!m.hit && dist < dangerRadius && movingTowardPunch){
+/* 🔥 AGGRESSION NEAR PUNCH */
+let aggression = 1;
+if(dist < 120){
+aggression = 1.6;
 dangerNearby = true;
 }
 
-const targetVX = (dx/dist) * m.speed;
-const targetVY = (dy/dist) * m.speed;
+const targetVX = (dx/dist) * m.speed * aggression;
+const targetVY = (dy/dist) * m.speed * aggression;
 
 m.vx += (targetVX - m.vx) * 0.08;
 m.vy += (targetVY - m.vy) * 0.08;
@@ -470,7 +504,7 @@ ctx.fill();
 if(irisRadius <= 0) gameState="end";
 }
 
-/* END SCREEN (RESTORED) */
+/* END SCREEN */
 
 if(gameState==="end"){
 
