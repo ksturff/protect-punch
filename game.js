@@ -249,6 +249,17 @@ resetGame();
 return;
 }
 
+if(isInsideButton(mouseX, mouseY, shareBtnX, btnY, btnW, btnH)){
+const text = `🥊 I survived ${finalTime.toFixed(1)} seconds and eliminated ${finalMonkeys} monkeys in Protect Punch! Can you beat me?`;
+if(navigator.share){
+navigator.share({ title: "Protect Punch", text: text, url: window.location.href });
+} else {
+navigator.clipboard.writeText(text + " " + window.location.href);
+alert("Score copied to clipboard!");
+}
+return;
+}
+
 }
 
 if(gameState!=="playing") return;
