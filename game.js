@@ -482,15 +482,16 @@ ctx.restore();
 });
 
 /* HUD */
+/* HUD */
 ctx.font="bold 18px Arial";
 ctx.textAlign="left";
 ctx.strokeStyle="black";
 ctx.lineWidth=4;
-ctx.strokeText("Time: "+score.toFixed(1),10,25);
-ctx.strokeText("Best: "+bestScore.toFixed(1),10,48);
+
+/* Only show BEST during gameplay */
+ctx.strokeText("Best: "+bestScore.toFixed(1),10,25);
 ctx.fillStyle="#FFEB3B";
-ctx.fillText("Time: "+score.toFixed(1),10,25);
-ctx.fillText("Best: "+bestScore.toFixed(1),10,48);
+ctx.fillText("Best: "+bestScore.toFixed(1),10,25);
 
 /* IRIS */
 
