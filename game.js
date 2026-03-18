@@ -443,7 +443,10 @@ ctx.font="13px 'Press Start 2P'";
 ctx.fillText("BEST: "+bestScore.toFixed(1)+" SEC", width/2, height*0.78);
 
 ctx.font="13px 'Press Start 2P'";
-ctx.fillText("MONKEYS ELIMINATED", width/2, height*0.86);
+ctx.fillText("MONKEYS ELIMINATED", width/2, height*0.87);
+
+ctx.font="20px 'Press Start 2P'";
+ctx.fillText(finalMonkeys, width/2, height*0.95);
 
 ctx.fillStyle="#FFE135";
 ctx.font="15px 'Press Start 2P'";
