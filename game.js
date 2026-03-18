@@ -26,13 +26,11 @@ let finalTime = 0;
 let finalMonkeys = 0;
 
 /* ---------------------------
-   WAVE SYSTEM (UPDATED)
+   WAVE SYSTEM (NO BREAKS)
 ---------------------------- */
 let wave = 1;
 let waveTimer = 0;
 let waveDuration = 20 * 60;
-let waveBreak = 3 * 60;
-let inBreak = false;
 
 let enemiesToSpawn = 0;
 let enemiesSpawned = 0;
@@ -174,7 +172,6 @@ finalTime = 0;
 finalMonkeys = 0;
 
 wave = 1;
-inBreak = false;
 startWave();
 
 restartBtn.style.display="none";
@@ -223,9 +220,7 @@ vy:0
 
 }
 
-/* ---------------------------
-   CLICK HANDLING
----------------------------- */
+/* CLICK HANDLING */
 
 canvas.addEventListener("click",function(e){
 
@@ -252,18 +247,6 @@ if(gameState==="end"){
 
 if(isInsideButton(mouseX, mouseY, playBtnX, btnY, btnW, btnH)){
 resetGame();
-return;
-}
-
-if(isInsideButton(mouseX, mouseY, shareBtnX, btnY, btnW, btnH)){
-const text = "I survived "+finalTime.toFixed(1)+" seconds and eliminated "+finalMonkeys+" monkeys in Protect Punch 🐒";
-const url = window.location.href;
-const twitter = "https://twitter.com/intent/tweet?text="+encodeURIComponent(text)+"&url="+encodeURIComponent(url);
-const facebook = "https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url);
-const choice = prompt("Share your score!\n\n1 = Twitter/X\n2 = Facebook\n3 = Copy Link");
-if(choice==="1") window.open(twitter,"_blank");
-else if(choice==="2") window.open(facebook,"_blank");
-else if(choice==="3"){ navigator.clipboard.writeText(url); alert("Link copied!"); }
 return;
 }
 
@@ -314,17 +297,13 @@ if(currentFrame >= monkeyFrames.length) currentFrame = 0;
 frameTimer = 0;
 }
 
-/* WAVE SYSTEM */
+/* WAVE SYSTEM (CONTINUOUS) */
 
 waveTimer++;
 
-if(inBreak){
-    if(waveTimer > waveBreak){
-        wave++;
-        inBreak = false;
-        startWave();
-    }
-    return;
+if(waveTimer > waveDuration){
+wave++;
+startWave();
 }
 
 /* SPAWN SYSTEM */
@@ -334,24 +313,17 @@ spawnTimer++;
 let currentInterval = spawnInterval;
 
 if(waveTimer > waveDuration * 0.85){
-    currentInterval *= 0.5;
+currentInterval *= 0.5;
 }
 
 if(
-    spawnTimer >= currentInterval &&
-    enemiesSpawned < enemiesToSpawn &&
-    monkeys.length < maxEnemiesOnScreen
+spawnTimer >= currentInterval &&
+enemiesSpawned < enemiesToSpawn &&
+monkeys.length < maxEnemiesOnScreen
 ){
-    spawnMonkey();
-    enemiesSpawned++;
-    spawnTimer = 0;
-}
-
-/* END WAVE */
-
-if(enemiesSpawned >= enemiesToSpawn && monkeys.length === 0){
-    inBreak = true;
-    waveTimer = 0;
+spawnMonkey();
+enemiesSpawned++;
+spawnTimer = 0;
 }
 
 if(punch.happyTimer > 0){
@@ -409,7 +381,7 @@ speed = 1 + (wave * 0.08);
 
 }
 
-/* DRAW + LOOP (UNCHANGED) */
+/* DRAW (unchanged except no break overlay) */
 
 function draw(){
 
@@ -489,17 +461,6 @@ ctx.strokeText("Best: "+bestScore.toFixed(1),10,48);
 ctx.fillStyle="#FFEB3B";
 ctx.fillText("Time: "+score.toFixed(1),10,25);
 ctx.fillText("Best: "+bestScore.toFixed(1),10,48);
-
-/* BREAK FEEDBACK */
-if(inBreak){
-ctx.fillStyle = "rgba(0,0,0,0.4)";
-ctx.fillRect(0,0,width,height);
-
-ctx.fillStyle = "#FFE135";
-ctx.font = "28px 'Press Start 2P'";
-ctx.textAlign = "center";
-ctx.fillText("CATCH YOUR BREATH", width/2, height/2);
-}
 
 /* IRIS CLOSE */
 
