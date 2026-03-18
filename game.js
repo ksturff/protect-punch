@@ -38,10 +38,10 @@ let spawnInterval = baseSpawnInterval;
 let maxEnemiesOnScreen = 10;
 
 /* ---------------------------
-   DANGER SYSTEM (FIXED)
+   DANGER SYSTEM (TUNED)
 ---------------------------- */
 
-let dangerRadius = 140;
+let dangerRadius = 95;
 
 /* ---------------------------
    SOUND SYSTEM
@@ -311,7 +311,6 @@ spawnTimer = 0;
 
 let dangerNearby = false;
 
-/* happy timer */
 if(punch.happyTimer > 0){
 punch.happyTimer--;
 }
@@ -336,8 +335,10 @@ const dx = punch.x-m.x;
 const dy = punch.y-m.y;
 const dist = Math.sqrt(dx*dx+dy*dy)||0.001;
 
-/* FIXED danger detection */
-if(!m.hit && dist < dangerRadius){
+/* SMART danger detection */
+const movingTowardPunch = (m.vx * dx + m.vy * dy) > 0;
+
+if(!m.hit && dist < dangerRadius && movingTowardPunch){
 dangerNearby = true;
 }
 
@@ -365,7 +366,7 @@ if(score > bestScore) bestScore=score;
 
 }
 
-/* FINAL STATE FIX (THIS IS THE KEY) */
+/* FINAL STATE */
 if(punch.happyTimer > 0){
 punch.state = "happy";
 }
@@ -386,16 +387,21 @@ function draw(){
 
 ctx.clearRect(0,0,width,height);
 
+/* START */
+
 if(gameState==="start"){
+
 ctx.fillStyle="#111";
 ctx.fillRect(0,0,width,height);
 
 ctx.textAlign="center";
+
 ctx.fillStyle="#FFE135";
 ctx.font="72px 'Luckiest Guy'";
 ctx.fillText("PROTECT PUNCH", width/2, height*0.22);
 
 let bob = Math.sin(Date.now()*0.004)*8;
+
 ctx.drawImage(punchNeutral, width/2-70, height*0.28+bob, 140, 140);
 
 ctx.fillStyle="white";
@@ -412,7 +418,10 @@ ctx.font="11px 'Press Start 2P'";
 ctx.fillText("BEST TIME: "+bestScore.toFixed(1)+" SEC", width/2, height*0.1);
 
 return;
+
 }
+
+/* GAMEPLAY */
 
 ctx.drawImage(zooBackground,0,0,width,height);
 
@@ -461,22 +470,41 @@ ctx.fill();
 if(irisRadius <= 0) gameState="end";
 }
 
-/* END */
+/* END SCREEN (RESTORED) */
 
 if(gameState==="end"){
+
 ctx.fillStyle="black";
 ctx.fillRect(0,0,width,height);
 
-ctx.textAlign="center";
-ctx.fillStyle="#FFE135";
-ctx.font="64px 'Luckiest Guy'";
-ctx.fillText("PUNCH GOT BULLIED!", width/2, height*0.2);
+let pulse = Math.sin(Date.now()*0.005)*5;
 
-ctx.drawImage(punchSad, width/2-70, height*0.25, 140, 140);
+ctx.textAlign="center";
+ctx.lineWidth = 8;
+ctx.strokeStyle = "#2a2a2a";
+ctx.fillStyle = "#FFE135";
+ctx.font = "64px 'Luckiest Guy'";
+ctx.strokeText("PUNCH GOT BULLIED!", width/2, height*0.18+pulse);
+ctx.fillText("PUNCH GOT BULLIED!", width/2, height*0.18+pulse);
+
+ctx.drawImage(punchSad, width/2-70, height*0.22, 140, 140);
 
 ctx.fillStyle="white";
+ctx.font="13px 'Press Start 2P'";
+ctx.fillText("SURVIVAL TIME", width/2, height*0.62);
+
 ctx.font="20px 'Press Start 2P'";
-ctx.fillText(finalTime.toFixed(1)+" SEC", width/2, height*0.7);
+ctx.fillText(finalTime.toFixed(1)+" SEC", width/2, height*0.72);
+
+ctx.font="13px 'Press Start 2P'";
+ctx.fillText("MONKEYS ELIMINATED", width/2, height*0.80);
+
+ctx.font="20px 'Press Start 2P'";
+ctx.fillText(finalMonkeys, width/2, height*0.88);
+
+drawButton("PLAY AGAIN", playBtnX, btnY, btnW, btnH, "#27ae60");
+drawButton("SHARE", shareBtnX, btnY, btnW, btnH, "#2980b9");
+
 }
 
 }
