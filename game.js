@@ -447,8 +447,6 @@ ctx.fillStyle="#FFE135";
 ctx.font="15px 'Press Start 2P'";
 ctx.fillText(startClicked ? "CLICK TO PLAY" : "CLICK TO START", width/2, height*0.96);
 
-ctx.fillStyle="white";
-ctx.font="11px 'Press Start 2P'";
 
 
 return;
