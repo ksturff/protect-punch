@@ -211,7 +211,7 @@ x:x,
 y:y,
 size: finalSize,
 drawSize: finalDrawSize,
-speed: type==="fast" ? speed*1.5 : speed,
+speed: type==="fast" ? speed*1.2 : speed,
 hit:false,
 vx:0,
 vy:0
@@ -364,7 +364,7 @@ const dist = Math.sqrt(dx*dx+dy*dy)||0.001;
 
 let aggression = 1;
 if(dist < 120){
-aggression = 1.6;
+aggression = 1.2;
 dangerNearby = true;
 }
 
@@ -373,6 +373,9 @@ const targetVY = (dy/dist) * m.speed * aggression;
 
 m.vx += (targetVX - m.vx) * 0.08;
 m.vy += (targetVY - m.vy) * 0.08;
+
+m.vx = Math.max(-3.5, Math.min(3.5, m.vx));
+m.vy = Math.max(-3.5, Math.min(3.5, m.vy));
 
 m.x += m.vx;
 m.y += m.vy;
