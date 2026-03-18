@@ -26,13 +26,17 @@ let finalTime = 0;
 let finalMonkeys = 0;
 
 /* ---------------------------
-   WAVE SYSTEM (NEW)
+   WAVE SYSTEM (IMPROVED)
 ---------------------------- */
 let wave = 1;
 let waveTimer = 0;
 let waveDuration = 20 * 60;
 let waveBreak = 3 * 60;
 let inBreak = false;
+
+let enemiesToSpawn = 0;
+let enemiesSpawned = 0;
+let waveSpawnInterval = 60;
 
 /* ---------------------------
    SOUND SYSTEM
@@ -83,6 +87,21 @@ punchHappy.src = "assets/punch/happy.png";
 
 const punchSad = new Image();
 punchSad.src = "assets/punch/sad.png";
+
+/* ---------------------------
+   WAVE SETUP FUNCTION
+---------------------------- */
+
+function startWave(){
+    waveTimer = 0;
+    enemiesSpawned = 0;
+
+    // smooth infinite scaling
+    enemiesToSpawn = Math.floor(6 + Math.pow(wave, 1.2) * 2);
+
+    // spread enemies across full wave
+    waveSpawnInterval = Math.floor(waveDuration / enemiesToSpawn);
+}
 
 /* ---------------------------
    CANVAS BUTTON HELPERS
@@ -152,8 +171,8 @@ finalTime = 0;
 finalMonkeys = 0;
 
 wave = 1;
-waveTimer = 0;
 inBreak = false;
+startWave();
 
 restartBtn.style.display="none";
 shareBtn.style.display="none";
@@ -299,35 +318,33 @@ waveTimer++;
 if(inBreak){
     if(waveTimer > waveBreak){
         wave++;
-        waveTimer = 0;
         inBreak = false;
+        startWave();
     }
     return;
 }
 
-if(waveTimer > waveDuration){
-    waveTimer = 0;
-    inBreak = true;
-    return;
-}
-
-/* SPAWNING */
+/* SPAWN PACING */
 
 spawnTimer++;
 
-let spawnRate = 90 - (wave * 8);
-if(spawnRate < 25) spawnRate = 25;
+let progress = waveTimer / waveDuration;
+let dynamicInterval = waveSpawnInterval * (1 - progress * 0.5);
 
-if(spawnTimer > spawnRate){
+if(
+    spawnTimer >= dynamicInterval &&
+    enemiesSpawned < enemiesToSpawn
+){
     spawnMonkey();
-    if(wave > 4 && Math.random() < 0.3) spawnMonkey();
+    enemiesSpawned++;
     spawnTimer = 0;
 }
 
-/* PANIC END OF WAVE */
-if(waveTimer > waveDuration - 60){
-    spawnMonkey();
-    spawnMonkey();
+/* END WAVE */
+
+if(enemiesSpawned >= enemiesToSpawn && monkeys.length === 0){
+    inBreak = true;
+    waveTimer = 0;
 }
 
 if(punch.happyTimer > 0){
@@ -381,13 +398,13 @@ if(score > bestScore) bestScore=score;
 
 score += 0.016;
 
-/* SPEED BASED ON WAVE */
-speed = 1.0 + (wave * 0.12);
+/* SMOOTH CAPPED SPEED */
+speed = Math.min(2.8, 1 + wave * 0.08);
 
 }
 
 /* ---------------------------
-   DRAWING
+   DRAWING (unchanged except removed wave text)
 ---------------------------- */
 
 function draw(){
@@ -469,12 +486,7 @@ ctx.fillStyle="#FFEB3B";
 ctx.fillText("Time: "+score.toFixed(1),10,25);
 ctx.fillText("Best: "+bestScore.toFixed(1),10,48);
 
-/* WAVE UI */
-ctx.fillStyle = "#ffffff";
-ctx.font = "bold 18px Arial";
-ctx.fillText("Wave: " + wave, width - 140, 25);
-
-/* BREAK SCREEN */
+/* BREAK FEEDBACK */
 if(inBreak){
     ctx.fillStyle = "rgba(0,0,0,0.4)";
     ctx.fillRect(0,0,width,height);
