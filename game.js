@@ -26,7 +26,7 @@ let finalTime = 0;
 let finalMonkeys = 0;
 
 /* ---------------------------
-   WAVE SYSTEM (IMPROVED)
+   WAVE SYSTEM (UPDATED)
 ---------------------------- */
 let wave = 1;
 let waveTimer = 0;
@@ -36,7 +36,12 @@ let inBreak = false;
 
 let enemiesToSpawn = 0;
 let enemiesSpawned = 0;
-let waveSpawnInterval = 60;
+let spawnInterval = 60;
+let maxEnemiesOnScreen = 12;
+
+function lerp(a, b, t){
+return a + (b - a) * t;
+}
 
 /* ---------------------------
    SOUND SYSTEM
@@ -93,14 +98,12 @@ punchSad.src = "assets/punch/sad.png";
 ---------------------------- */
 
 function startWave(){
-    waveTimer = 0;
-    enemiesSpawned = 0;
+waveTimer = 0;
+enemiesSpawned = 0;
 
-    // smooth infinite scaling
-    enemiesToSpawn = Math.floor(6 + Math.pow(wave, 1.2) * 2);
-
-    // spread enemies across full wave
-    waveSpawnInterval = Math.floor(waveDuration / enemiesToSpawn);
+enemiesToSpawn = Math.floor(4 * Math.pow(1.6, wave));
+spawnInterval = lerp(150, 30, wave / 10);
+maxEnemiesOnScreen = 12 + (wave * 2);
 }
 
 /* ---------------------------
@@ -324,16 +327,20 @@ if(inBreak){
     return;
 }
 
-/* SPAWN PACING */
+/* SPAWN SYSTEM */
 
 spawnTimer++;
 
-let progress = waveTimer / waveDuration;
-let dynamicInterval = waveSpawnInterval * (1 - progress * 0.5);
+let currentInterval = spawnInterval;
+
+if(waveTimer > waveDuration * 0.85){
+    currentInterval *= 0.5;
+}
 
 if(
-    spawnTimer >= dynamicInterval &&
-    enemiesSpawned < enemiesToSpawn
+    spawnTimer >= currentInterval &&
+    enemiesSpawned < enemiesToSpawn &&
+    monkeys.length < maxEnemiesOnScreen
 ){
     spawnMonkey();
     enemiesSpawned++;
@@ -398,14 +405,11 @@ if(score > bestScore) bestScore=score;
 
 score += 0.016;
 
-/* SMOOTH CAPPED SPEED */
-speed = Math.min(2.8, 1 + wave * 0.08);
+speed = 1 + (wave * 0.08);
 
 }
 
-/* ---------------------------
-   DRAWING (unchanged except removed wave text)
----------------------------- */
+/* DRAW + LOOP (UNCHANGED) */
 
 function draw(){
 
@@ -488,13 +492,13 @@ ctx.fillText("Best: "+bestScore.toFixed(1),10,48);
 
 /* BREAK FEEDBACK */
 if(inBreak){
-    ctx.fillStyle = "rgba(0,0,0,0.4)";
-    ctx.fillRect(0,0,width,height);
+ctx.fillStyle = "rgba(0,0,0,0.4)";
+ctx.fillRect(0,0,width,height);
 
-    ctx.fillStyle = "#FFE135";
-    ctx.font = "28px 'Press Start 2P'";
-    ctx.textAlign = "center";
-    ctx.fillText("CATCH YOUR BREATH", width/2, height/2);
+ctx.fillStyle = "#FFE135";
+ctx.font = "28px 'Press Start 2P'";
+ctx.textAlign = "center";
+ctx.fillText("CATCH YOUR BREATH", width/2, height/2);
 }
 
 /* IRIS CLOSE */
