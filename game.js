@@ -26,6 +26,13 @@ let finalTime = 0;
 let finalMonkeys = 0;
 
 /* ---------------------------
+   🍌 BANANA SYSTEM
+---------------------------- */
+let bananaMeter = 0;
+let bananaMax = 10;
+let bananaReady = false;
+
+/* ---------------------------
    CONTINUOUS DIFFICULTY SYSTEM
 ---------------------------- */
 
@@ -173,6 +180,9 @@ difficultyTimer = 0;
 spikeTimer = 0;
 spikeActive = false;
 
+bananaMeter = 0;
+bananaReady = false;
+
 restartBtn.style.display="none";
 shareBtn.style.display="none";
 
@@ -264,6 +274,28 @@ return;
 
 if(gameState!=="playing") return;
 
+   if(gameState!=="playing") return;
+
+/* 🍌 UNIVERSAL BANANA CLICK */
+const bananaX = 46;
+const bananaY = 46;
+const bananaRadius = 26;
+
+const dxUI = mouseX - bananaX;
+const dyUI = mouseY - bananaY;
+const distUI = Math.sqrt(dxUI * dxUI + dyUI * dyUI);
+
+if(distUI < bananaRadius){
+  if(bananaReady){
+    triggerBanana();
+
+    if(navigator.vibrate){
+      navigator.vibrate(100);
+    }
+  }
+  return;
+}
+
 for(let i=monkeys.length-1;i>=0;i--){
 
 const m = monkeys[i];
@@ -294,6 +326,37 @@ punch.facing = m.x < punch.x ? 1 : -1;
 }
 
 });
+
+/* 🍌 RIGHT CLICK */
+canvas.addEventListener("contextmenu", function(e){
+e.preventDefault();
+
+if(gameState !== "playing") return;
+if(!bananaReady) return;
+
+triggerBanana();
+});
+
+/* 🍌 BANANA FUNCTION */
+function triggerBanana(){
+
+bananaReady = false;
+bananaMeter = 0;
+
+monkeys.forEach(m => {
+
+m.hit = true;
+
+const dx = m.x - punch.x;
+const dy = m.y - punch.y;
+const angle = Math.atan2(dy, dx);
+
+m.vx = Math.cos(angle) * 16;
+m.vy = Math.sin(angle) * 16;
+
+});
+
+}
 
 function update(){
 
@@ -365,6 +428,13 @@ m.vy *= 0.85;
 if(Math.abs(m.vx)<0.5 && Math.abs(m.vy)<0.5){
 monkeys.splice(i,1);
 monkeysDefeated++;
+
+bananaMeter += 1;
+if(bananaMeter >= bananaMax){
+bananaMeter = bananaMax;
+bananaReady = true;
+}
+
 }
 continue;
 }
@@ -486,6 +556,58 @@ ctx.rotate(angle);
 ctx.drawImage(monkeyFrames[currentFrame], -half, -half, m.drawSize, m.drawSize);
 ctx.restore();
 });
+
+/* 🍌 BANANA RING UI (TOP LEFT + FLASH) */
+
+ctx.save();
+
+const uiX = 46;
+const uiY = 46;
+const radius = 26;
+
+const progress = bananaMeter / bananaMax;
+
+// flashing effect
+let flash = 1;
+if(bananaReady){
+flash = 0.6 + Math.sin(Date.now() * 0.01) * 0.4;
+}
+
+// background
+ctx.beginPath();
+ctx.arc(uiX, uiY, radius, 0, Math.PI * 2);
+ctx.fillStyle = "rgba(0,0,0,0.5)";
+ctx.fill();
+
+// progress ring
+ctx.beginPath();
+ctx.arc(
+uiX,
+uiY,
+radius,
+-Math.PI / 2,
+-Math.PI / 2 + (Math.PI * 2 * progress)
+);
+
+ctx.strokeStyle = bananaReady ? `rgba(255,225,53,${flash})` : "#f1c40f";
+ctx.lineWidth = 6;
+ctx.lineCap = "round";
+ctx.stroke();
+
+// banana icon
+ctx.textAlign = "center";
+ctx.textBaseline = "middle";
+ctx.font = "20px Arial";
+ctx.fillText("🍌", uiX, uiY);
+
+// ready text
+if(bananaReady){
+ctx.fillStyle = `rgba(255,225,53,${flash})`;
+ctx.font = "10px 'Press Start 2P'";
+ctx.fillText("READY", uiX, uiY + 35);
+}
+
+ctx.restore();
 
 if(gameState==="irisClosing"){
 irisRadius -= 18;
