@@ -502,7 +502,6 @@ function draw() {
         ? 30 + pulse * 20
         : 10 + 30 * glowProgress;
 
-      // Draw sprite multiple times with increasing shadow to build up intensity
       const passes = bananaReady ? 3 : 2;
       for (let p = 0; p < passes; p++) {
         ctx.shadowBlur = glowSize + p * 10;
@@ -519,7 +518,6 @@ function draw() {
     ctx.restore();
 
   } else {
-    /* Non-playing states — draw punch normally */
     let punchSprite = punchNeutral;
     if (punch.state === "happy") punchSprite = punchHappy;
     if (punch.state === "sad") punchSprite = punchSad;
@@ -538,9 +536,17 @@ function draw() {
     ctx.save();
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-   ctx.fillStyle = `rgba(255, 50, 50, ${flash})`;
-     ctx.font = "11px 'Press Start 2P'";
+    ctx.font = "15px 'Press Start 2P'";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetY = 2;
+    ctx.strokeStyle = `rgba(80, 0, 0, ${flash})`;
+    ctx.lineWidth = 4;
+    ctx.strokeText(!bananaHintShown ? "TAP ME!" : "READY!", punch.x, punch.y - 82 + hintBob);
+    ctx.fillStyle = `rgba(255, 50, 50, ${flash})`;
     ctx.fillText(!bananaHintShown ? "TAP ME!" : "READY!", punch.x, punch.y - 82 + hintBob);
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
     ctx.restore();
   }
 
