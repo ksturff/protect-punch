@@ -535,14 +535,15 @@ ctx.drawImage(monkeyFrames[currentFrame], -half, -half, m.drawSize, m.drawSize);
 ctx.restore();
 });
 
-/* 🍌 BANANA UI (TOP RIGHT + FLASH) */
+/* 🍌 BANANA RING UI (TOP + FLASH) */
 
-const uiX = width - 60;
+const uiX = width / 2;
 const uiY = 50;
-const radius = 30;
+const radius = 26;
 
 const progress = bananaMeter / bananaMax;
 
+// flashing effect
 let flash = 1;
 if(bananaReady){
 flash = 0.6 + Math.sin(Date.now() * 0.01) * 0.4;
@@ -554,7 +555,7 @@ ctx.arc(uiX, uiY, radius, 0, Math.PI * 2);
 ctx.fillStyle = "rgba(0,0,0,0.5)";
 ctx.fill();
 
-// progress
+// progress ring
 ctx.beginPath();
 ctx.arc(
 uiX,
@@ -575,11 +576,11 @@ ctx.textAlign = "center";
 ctx.textBaseline = "middle";
 ctx.fillText("🍌", uiX, uiY);
 
-// READY text
+// ready text flash
 if(bananaReady){
 ctx.fillStyle = `rgba(255,225,53,${flash})`;
 ctx.font = "10px 'Press Start 2P'";
-ctx.fillText("READY", uiX, uiY + 38);
+ctx.fillText("READY", uiX, uiY + 35);
 }
 
 if(gameState==="irisClosing"){
