@@ -37,12 +37,12 @@ let bananaHintShown = false;
    WAVE SYSTEM
 ---------------------------- */
 let waveNumber = 0;
-let wavePhase = "waiting"; // "waiting" | "spawning" | "breather"
+let wavePhase = "waiting";
 let waveTimer = 0;
-let waveBreatherDuration = 180; // frames between waves (~3 sec)
-let waveSpawnQueue = 0; // monkeys left to spawn in this wave
+let waveBreatherDuration = 180;
+let waveSpawnQueue = 0;
 let waveSpawnTimer = 0;
-let waveSpawnInterval = 18; // frames between each monkey in a burst
+let waveSpawnInterval = 6;
 let waveAnnounceTimer = 0;
 
 /* ---------------------------
@@ -50,7 +50,6 @@ let waveAnnounceTimer = 0;
 ---------------------------- */
 
 let difficultyTimer = 0;
-
 let speed_global = 1.0;
 
 /* ---------------------------
@@ -193,7 +192,7 @@ function resetGame() {
 
   waveNumber = 0;
   wavePhase = "waiting";
-  waveTimer = 60; // short pause before first wave
+  waveTimer = 60;
   waveSpawnQueue = 0;
   waveSpawnTimer = 0;
   waveAnnounceTimer = 0;
@@ -212,17 +211,15 @@ resetGame();
 function startNextWave() {
   waveNumber++;
   wavePhase = "spawning";
-  waveAnnounceTimer = 90; // show "WAVE X" for 1.5 sec
+  waveAnnounceTimer = 90;
 
-  // Wave size grows with each wave, capped at 12
   waveSpawnQueue = Math.min(3 + Math.floor(waveNumber * 1.2), 12);
   waveSpawnTimer = 0;
 
-  // Breather shrinks as waves go on, min 90 frames (~1.5 sec)
   waveBreatherDuration = Math.max(90, 220 - waveNumber * 8);
 
-  // Spawn interval between monkeys in a wave tightens over time
-  waveSpawnInterval = Math.max(8, 20 - Math.floor(waveNumber * 0.5));
+  // Faster burst interval that tightens over time
+  waveSpawnInterval = Math.max(4, 12 - Math.floor(waveNumber * 0.3));
 }
 
 function spawnMonkey() {
@@ -369,7 +366,6 @@ function update() {
 
   difficultyTimer++;
   let t = difficultyTimer / 60;
-
   speed_global = 1 + (t * 0.03);
 
   if (waveAnnounceTimer > 0) waveAnnounceTimer--;
@@ -380,7 +376,6 @@ function update() {
     spikeDuration = 120 + Math.random() * 60;
     spikeTimer = 0;
   }
-
   if (spikeActive) {
     spikeDuration--;
     if (spikeDuration <= 0) spikeActive = false;
@@ -389,9 +384,7 @@ function update() {
   /* WAVE LOGIC */
   if (wavePhase === "waiting") {
     waveTimer--;
-    if (waveTimer <= 0) {
-      startNextWave();
-    }
+    if (waveTimer <= 0) startNextWave();
   }
 
   else if (wavePhase === "spawning") {
@@ -403,17 +396,19 @@ function update() {
         waveSpawnTimer = waveSpawnInterval;
       }
     } else {
-      // All spawned — wait for monkeys to be cleared or move to breather
-      wavePhase = "breather";
-      waveTimer = waveBreatherDuration;
+      // Done spawning — wait for screen to clear OR breather to expire
+      if (monkeys.length === 0 || waveTimer <= 0) {
+        wavePhase = "breather";
+        waveTimer = waveBreatherDuration;
+      } else {
+        waveTimer--;
+      }
     }
   }
 
   else if (wavePhase === "breather") {
     waveTimer--;
-    if (waveTimer <= 0) {
-      startNextWave();
-    }
+    if (waveTimer <= 0) startNextWave();
   }
 
   let dangerNearby = false;
@@ -562,7 +557,6 @@ function draw() {
     ctx.shadowBlur = 0;
     ctx.shadowColor = "transparent";
     ctx.drawImage(punchSprite, -64, -64, 128, 128);
-
     ctx.restore();
 
   } else {
