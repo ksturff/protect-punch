@@ -315,19 +315,23 @@ if(!bananaReady) return;
 triggerBanana();
 });
 
-/* 🍌 BANANA FUNCTION */
+/* 🍌 BANANA FUNCTION (FULL BOARD WIPE) */
 function triggerBanana(){
 
 bananaReady = false;
 bananaMeter = 0;
 
 monkeys.forEach(m => {
+
+m.hit = true;
+
 const dx = m.x - punch.x;
 const dy = m.y - punch.y;
 const angle = Math.atan2(dy, dx);
 
-m.vx = Math.cos(angle) * 12;
-m.vy = Math.sin(angle) * 12;
+m.vx = Math.cos(angle) * 16;
+m.vy = Math.sin(angle) * 16;
+
 });
 
 }
@@ -403,7 +407,6 @@ if(Math.abs(m.vx)<0.5 && Math.abs(m.vy)<0.5){
 monkeys.splice(i,1);
 monkeysDefeated++;
 
-/* 🍌 FILL METER */
 bananaMeter += 1;
 if(bananaMeter >= bananaMax){
 bananaMeter = bananaMax;
