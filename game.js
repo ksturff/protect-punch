@@ -557,9 +557,11 @@ ctx.drawImage(monkeyFrames[currentFrame], -half, -half, m.drawSize, m.drawSize);
 ctx.restore();
 });
 
-/* 🍌 BANANA RING UI (TOP + FLASH) */
+/* 🍌 BANANA RING UI (TOP LEFT + FLASH) */
 
-const uiX = 60;
+ctx.save();
+
+const uiX = 70;
 const uiY = 50;
 const radius = 26;
 
@@ -593,17 +595,19 @@ ctx.lineCap = "round";
 ctx.stroke();
 
 // banana icon
-ctx.font = "20px Arial";
 ctx.textAlign = "center";
 ctx.textBaseline = "middle";
+ctx.font = "20px Arial";
 ctx.fillText("🍌", uiX, uiY);
 
-// ready text flash
+// ready text
 if(bananaReady){
 ctx.fillStyle = `rgba(255,225,53,${flash})`;
 ctx.font = "10px 'Press Start 2P'";
 ctx.fillText("READY", uiX, uiY + 35);
 }
+
+ctx.restore();
 
 if(gameState==="irisClosing"){
 irisRadius -= 18;
