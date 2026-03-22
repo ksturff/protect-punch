@@ -31,6 +31,19 @@ let finalMonkeys = 0;
 let bananaMeter = 0;
 let bananaMax = 10;
 let bananaReady = false;
+let bananaHintShown = false;
+
+/* ---------------------------
+   WAVE SYSTEM
+---------------------------- */
+let waveNumber = 0;
+let wavePhase = "waiting"; // "waiting" | "spawning" | "breather"
+let waveTimer = 0;
+let waveBreatherDuration = 180; // frames between waves (~3 sec)
+let waveSpawnQueue = 0; // monkeys left to spawn in this wave
+let waveSpawnTimer = 0;
+let waveSpawnInterval = 18; // frames between each monkey in a burst
+let waveAnnounceTimer = 0;
 
 /* ---------------------------
    CONTINUOUS DIFFICULTY SYSTEM
@@ -38,11 +51,7 @@ let bananaReady = false;
 
 let difficultyTimer = 0;
 
-let baseSpawnInterval = 150;
-let minSpawnInterval = 20;
-let spawnInterval = baseSpawnInterval;
-
-let maxEnemiesOnScreen = 10;
+let speed_global = 1.0;
 
 /* ---------------------------
    🔥 SPIKE SYSTEM
@@ -86,9 +95,9 @@ zooBackground.src = "assets/zoo.png";
 const monkeyFrames = [];
 
 for (let i = 1; i <= 9; i++) {
-const img = new Image();
-img.src = "assets/monkey/" + i + ".png";
-monkeyFrames.push(img);
+  const img = new Image();
+  img.src = "assets/monkey/" + i + ".png";
+  monkeyFrames.push(img);
 }
 
 let currentFrame = 0;
@@ -112,558 +121,568 @@ punchSad.src = "assets/punch/sad.png";
    CANVAS BUTTON HELPERS
 ---------------------------- */
 
-function drawButton(label, x, y, w, h, color){
-ctx.save();
+function drawButton(label, x, y, w, h, color) {
+  ctx.save();
 
-ctx.shadowColor = "rgba(0,0,0,0.4)";
-ctx.shadowBlur = 8;
-ctx.shadowOffsetY = 4;
+  ctx.shadowColor = "rgba(0,0,0,0.4)";
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 4;
 
-ctx.fillStyle = color;
-ctx.beginPath();
-ctx.roundRect(x - w/2, y - h/2, w, h, 12);
-ctx.fill();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.roundRect(x - w / 2, y - h / 2, w, h, 12);
+  ctx.fill();
 
-ctx.shadowBlur = 0;
-ctx.shadowOffsetY = 0;
-ctx.strokeStyle = "rgba(255,255,255,0.3)";
-ctx.lineWidth = 2;
-ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.strokeStyle = "rgba(255,255,255,0.3)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
 
-ctx.fillStyle = "white";
-ctx.font = "bold 16px 'Press Start 2P'";
-ctx.textAlign = "center";
-ctx.textBaseline = "middle";
-ctx.fillText(label, x, y);
+  ctx.fillStyle = "white";
+  ctx.font = "bold 16px 'Press Start 2P'";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(label, x, y);
 
-ctx.restore();
+  ctx.restore();
 }
 
-function isInsideButton(mx, my, x, y, w, h){
-return mx > x - w/2 && mx < x + w/2 && my > y - h/2 && my < y + h/2;
+function isInsideButton(mx, my, x, y, w, h) {
+  return mx > x - w / 2 && mx < x + w / 2 && my > y - h / 2 && my < y + h / 2;
 }
 
 /* button positions */
 const btnY = height * 0.95;
 const btnW = 160;
 const btnH = 44;
-const playBtnX = width/2 - 160;
-const shareBtnX = width/2 + 160;
+const playBtnX = width / 2 - 160;
+const shareBtnX = width / 2 + 160;
 
-function resetGame(){
+function resetGame() {
+  gameState = "start";
+  startClicked = false;
 
-gameState = "start";
-startClicked = false;
+  punch = {
+    x: width / 2,
+    y: height / 2,
+    size: 45,
+    state: "neutral",
+    happyTimer: 0,
+    facing: 1
+  };
 
-punch = {
-x: width/2,
-y: height/2,
-size: 45,
-state: "neutral",
-happyTimer: 0,
-facing: 1
-};
+  monkeys = [];
 
-monkeys = [];
+  score = 0;
+  speed_global = 1.0;
 
-score = 0;
-spawnTimer = 0;
-speed = 1.0;
+  monkeysDefeated = 0;
 
-monkeysDefeated = 0;
+  finalTime = 0;
+  finalMonkeys = 0;
 
-finalTime = 0;
-finalMonkeys = 0;
+  difficultyTimer = 0;
 
-difficultyTimer = 0;
+  spikeTimer = 0;
+  spikeActive = false;
 
-spikeTimer = 0;
-spikeActive = false;
+  bananaMeter = 0;
+  bananaReady = false;
+  bananaHintShown = false;
 
-bananaMeter = 0;
-bananaReady = false;
+  waveNumber = 0;
+  wavePhase = "waiting";
+  waveTimer = 60; // short pause before first wave
+  waveSpawnQueue = 0;
+  waveSpawnTimer = 0;
+  waveAnnounceTimer = 0;
 
-restartBtn.style.display="none";
-shareBtn.style.display="none";
+  restartBtn.style.display = "none";
+  shareBtn.style.display = "none";
 
-irisRadius = 900;
+  irisRadius = 900;
 
-backgroundMusic.pause();
-backgroundMusic.currentTime = 0;
-
+  backgroundMusic.pause();
+  backgroundMusic.currentTime = 0;
 }
 
 resetGame();
 
-function spawnMonkey(){
+function startNextWave() {
+  waveNumber++;
+  wavePhase = "spawning";
+  waveAnnounceTimer = 90; // show "WAVE X" for 1.5 sec
 
-const side = Math.floor(Math.random()*4);
+  // Wave size grows with each wave, capped at 12
+  waveSpawnQueue = Math.min(3 + Math.floor(waveNumber * 1.2), 12);
+  waveSpawnTimer = 0;
 
-let x,y;
+  // Breather shrinks as waves go on, min 90 frames (~1.5 sec)
+  waveBreatherDuration = Math.max(90, 220 - waveNumber * 8);
 
-if(side===0){x=0;y=Math.random()*height;}
-else if(side===1){x=width;y=Math.random()*height;}
-else if(side===2){x=Math.random()*width;y=0;}
-else{x=Math.random()*width;y=height;}
+  // Spawn interval between monkeys in a wave tightens over time
+  waveSpawnInterval = Math.max(8, 20 - Math.floor(waveNumber * 0.5));
+}
 
-let type="normal";
+function spawnMonkey() {
+  const side = Math.floor(Math.random() * 4);
 
-if(Math.random()<0.25 && difficultyTimer > 1800) type="fast";
+  let x, y;
 
-const sizeVariation = 1.15;
-const baseSize = type==="fast" ? 14 : 20;
-const finalSize = Math.round(baseSize * sizeVariation);
-const baseDrawSize = 64;
-const finalDrawSize = Math.round(baseDrawSize * sizeVariation);
+  if (side === 0) { x = 0; y = Math.random() * height; }
+  else if (side === 1) { x = width; y = Math.random() * height; }
+  else if (side === 2) { x = Math.random() * width; y = 0; }
+  else { x = Math.random() * width; y = height; }
 
-monkeys.push({
-x:x,
-y:y,
-size: finalSize,
-drawSize: finalDrawSize,
-speed: type==="fast" ? speed*1.2 : speed,
-hit:false,
-vx:0,
-vy:0
-});
+  let type = "normal";
+  if (Math.random() < 0.25 && waveNumber > 5) type = "fast";
 
+  const sizeVariation = 1.15;
+  const baseSize = type === "fast" ? 14 : 20;
+  const finalSize = Math.round(baseSize * sizeVariation);
+  const baseDrawSize = 64;
+  const finalDrawSize = Math.round(baseDrawSize * sizeVariation);
+
+  const speedMultiplier = side === 2 ? 0.55 : 1;
+
+  monkeys.push({
+    x: x,
+    y: y,
+    size: finalSize,
+    drawSize: finalDrawSize,
+    speed: (type === "fast" ? speed_global * 1.2 : speed_global) * speedMultiplier,
+    hit: false,
+    vx: 0,
+    vy: 0
+  });
 }
 
 /* CLICK HANDLING */
 
-canvas.addEventListener("click",function(e){
+canvas.addEventListener("click", function (e) {
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
 
-const rect = canvas.getBoundingClientRect();
-const mouseX = (e.clientX-rect.left)*(canvas.width/rect.width);
-const mouseY = (e.clientY-rect.top)*(canvas.height/rect.height);
+  if (gameState === "start") {
+    if (!startClicked) {
+      startClicked = true;
+      backgroundMusic.currentTime = 0;
+      backgroundMusic.play();
+      return;
+    }
+    gameState = "playing";
+    backgroundMusic.currentTime = 0;
+    return;
+  }
 
-if(gameState==="start"){
-
-if(!startClicked){
-startClicked = true;
-backgroundMusic.currentTime = 0;
-backgroundMusic.play();
-return;
-}
-
-gameState="playing";
-backgroundMusic.currentTime = 0;
-return;
-
-}
-
-if(gameState==="end"){
-
-if(isInsideButton(mouseX, mouseY, playBtnX, btnY, btnW, btnH)){
-resetGame();
-return;
-}
-
-if(isInsideButton(mouseX, mouseY, shareBtnX, btnY, btnW, btnH)){
-const text = `🥊 I survived ${finalTime.toFixed(1)} seconds and eliminated ${finalMonkeys} monkeys in Protect Punch! Can you beat me?`;
-if(navigator.share){
-navigator.share({ title: "Protect Punch", text: text, url: window.location.href });
-} else {
-navigator.clipboard.writeText(text + " " + window.location.href);
-alert("Score copied to clipboard!");
-}
-return;
-}
-
-}
-
-if(gameState!=="playing") return;
-
-   if(gameState!=="playing") return;
-
-/* 🍌 UNIVERSAL BANANA CLICK */
-const bananaX = 46;
-const bananaY = 46;
-const bananaRadius = 26;
-
-const dxUI = mouseX - bananaX;
-const dyUI = mouseY - bananaY;
-const distUI = Math.sqrt(dxUI * dxUI + dyUI * dyUI);
-
-if(distUI < bananaRadius){
-  if(bananaReady){
-    triggerBanana();
-
-    if(navigator.vibrate){
-      navigator.vibrate(100);
+  if (gameState === "end") {
+    if (isInsideButton(mouseX, mouseY, playBtnX, btnY, btnW, btnH)) {
+      resetGame();
+      return;
+    }
+    if (isInsideButton(mouseX, mouseY, shareBtnX, btnY, btnW, btnH)) {
+      const text = `🥊 I survived ${finalTime.toFixed(1)} seconds and eliminated ${finalMonkeys} monkeys in Protect Punch! Can you beat me?`;
+      if (navigator.share) {
+        navigator.share({ title: "Protect Punch", text: text, url: window.location.href });
+      } else {
+        navigator.clipboard.writeText(text + " " + window.location.href);
+        alert("Score copied to clipboard!");
+      }
+      return;
     }
   }
-  return;
-}
 
-for(let i=monkeys.length-1;i>=0;i--){
+  if (gameState !== "playing") return;
 
-const m = monkeys[i];
+  /* 🍌 CLICK PUNCH HIMSELF TO TRIGGER BANANA */
+  const dxPunch = mouseX - punch.x;
+  const dyPunch = mouseY - punch.y;
+  const distPunch = Math.sqrt(dxPunch * dxPunch + dyPunch * dyPunch);
 
-const dx = mouseX-m.x;
-const dy = mouseY-m.y;
+  if (distPunch < punch.size + 20) {
+    if (bananaReady) {
+      triggerBanana();
+      if (navigator.vibrate) navigator.vibrate(100);
+    }
+    return;
+  }
 
-const dist = Math.sqrt(dx*dx+dy*dy);
+  /* HIT MONKEYS */
+  for (let i = monkeys.length - 1; i >= 0; i--) {
+    const m = monkeys[i];
+    const dx = mouseX - m.x;
+    const dy = mouseY - m.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
 
-if(dist < m.size + 20){
+    if (dist < m.size + 20) {
+      m.hit = true;
 
-m.hit = true;
+      punchSound.currentTime = 0;
+      punchSound.play();
 
-punchSound.currentTime = 0;
-punchSound.play();
+      const angle = Math.atan2(dy, dx);
+      m.vx = Math.cos(angle) * -6;
+      m.vy = Math.sin(angle) * -6;
 
-const angle = Math.atan2(dy,dx);
-
-m.vx = Math.cos(angle) * -6;
-m.vy = Math.sin(angle) * -6;
-
-punch.state="happy";
-punch.happyTimer=45;
-punch.facing = m.x < punch.x ? 1 : -1;
-
-}
-
-}
-
+      punch.state = "happy";
+      punch.happyTimer = 45;
+      punch.facing = m.x < punch.x ? 1 : -1;
+    }
+  }
 });
 
-/* 🍌 RIGHT CLICK */
-canvas.addEventListener("contextmenu", function(e){
-e.preventDefault();
-
-if(gameState !== "playing") return;
-if(!bananaReady) return;
-
-triggerBanana();
+/* 🍌 RIGHT CLICK fallback */
+canvas.addEventListener("contextmenu", function (e) {
+  e.preventDefault();
+  if (gameState !== "playing") return;
+  if (!bananaReady) return;
+  triggerBanana();
 });
 
 /* 🍌 BANANA FUNCTION */
-function triggerBanana(){
+function triggerBanana() {
+  bananaReady = false;
+  bananaMeter = 0;
+  bananaHintShown = true;
 
-bananaReady = false;
-bananaMeter = 0;
-
-monkeys.forEach(m => {
-
-m.hit = true;
-
-const dx = m.x - punch.x;
-const dy = m.y - punch.y;
-const angle = Math.atan2(dy, dx);
-
-m.vx = Math.cos(angle) * 16;
-m.vy = Math.sin(angle) * 16;
-
-});
-
+  monkeys.forEach(m => {
+    m.hit = true;
+    const dx = m.x - punch.x;
+    const dy = m.y - punch.y;
+    const angle = Math.atan2(dy, dx);
+    m.vx = Math.cos(angle) * 16;
+    m.vy = Math.sin(angle) * 16;
+  });
 }
 
-function update(){
+function update() {
+  if (gameState !== "playing") return;
 
-if(gameState!=="playing") return;
+  frameTimer++;
+  if (frameTimer > frameSpeed) {
+    currentFrame++;
+    if (currentFrame >= monkeyFrames.length) currentFrame = 0;
+    frameTimer = 0;
+  }
 
-frameTimer++;
+  difficultyTimer++;
+  let t = difficultyTimer / 60;
 
-if(frameTimer > frameSpeed){
-currentFrame++;
-if(currentFrame >= monkeyFrames.length) currentFrame = 0;
-frameTimer = 0;
-}
+  speed_global = 1 + (t * 0.03);
 
-difficultyTimer++;
-let t = difficultyTimer / 60;
+  if (waveAnnounceTimer > 0) waveAnnounceTimer--;
 
-spawnInterval = Math.max(minSpawnInterval, baseSpawnInterval - (t * 0.7));
-maxEnemiesOnScreen = 6 + Math.floor(t / 5);
-speed = 1 + (t * 0.03);
+  spikeTimer++;
+  if (!spikeActive && spikeTimer > 3600 + Math.random() * 600) {
+    spikeActive = true;
+    spikeDuration = 120 + Math.random() * 60;
+    spikeTimer = 0;
+  }
 
-spikeTimer++;
+  if (spikeActive) {
+    spikeDuration--;
+    if (spikeDuration <= 0) spikeActive = false;
+  }
 
-if(!spikeActive && spikeTimer > 3600 + Math.random()*600){
-spikeActive = true;
-spikeDuration = 120 + Math.random()*60;
-spikeTimer = 0;
-}
+  /* WAVE LOGIC */
+  if (wavePhase === "waiting") {
+    waveTimer--;
+    if (waveTimer <= 0) {
+      startNextWave();
+    }
+  }
 
-if(spikeActive){
-spawnInterval *= 0.65;
-speed *= 1.15;
-maxEnemiesOnScreen += 3;
+  else if (wavePhase === "spawning") {
+    if (waveSpawnQueue > 0) {
+      waveSpawnTimer--;
+      if (waveSpawnTimer <= 0) {
+        spawnMonkey();
+        waveSpawnQueue--;
+        waveSpawnTimer = waveSpawnInterval;
+      }
+    } else {
+      // All spawned — wait for monkeys to be cleared or move to breather
+      wavePhase = "breather";
+      waveTimer = waveBreatherDuration;
+    }
+  }
 
-spikeDuration--;
+  else if (wavePhase === "breather") {
+    waveTimer--;
+    if (waveTimer <= 0) {
+      startNextWave();
+    }
+  }
 
-if(spikeDuration <= 0){
-spikeActive = false;
-}
-}
+  let dangerNearby = false;
 
-if(t > 45){
-spawnInterval *= 0.7;
-}
+  if (punch.happyTimer > 0) punch.happyTimer--;
 
-spawnTimer++;
+  for (let i = monkeys.length - 1; i >= 0; i--) {
+    const m = monkeys[i];
 
-let randomOffset = Math.random() * 10;
+    if (m.hit) {
+      m.x += m.vx;
+      m.y += m.vy;
+      m.vx *= 0.85;
+      m.vy *= 0.85;
+      if (Math.abs(m.vx) < 0.5 && Math.abs(m.vy) < 0.5) {
+        monkeys.splice(i, 1);
+        monkeysDefeated++;
 
-if(spawnTimer >= spawnInterval - randomOffset && monkeys.length < maxEnemiesOnScreen){
-spawnMonkey();
-spawnTimer = 0;
-}
+        bananaMeter += 1;
+        if (bananaMeter >= bananaMax) {
+          bananaMeter = bananaMax;
+          bananaReady = true;
+        }
+      }
+      continue;
+    }
 
-let dangerNearby = false;
+    const dx = punch.x - m.x;
+    const dy = punch.y - m.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
 
-if(punch.happyTimer > 0){
-punch.happyTimer--;
-}
+    let aggression = 1;
+    if (dist < 120) {
+      aggression = 1.2;
+      dangerNearby = true;
+    }
 
-for(let i=monkeys.length-1;i>=0;i--){
+    const targetVX = (dx / dist) * m.speed * aggression;
+    const targetVY = (dy / dist) * m.speed * aggression;
 
-const m = monkeys[i];
+    m.vx += (targetVX - m.vx) * 0.08;
+    m.vy += (targetVY - m.vy) * 0.08;
 
-if(m.hit){
-m.x += m.vx;
-m.y += m.vy;
-m.vx *= 0.85;
-m.vy *= 0.85;
-if(Math.abs(m.vx)<0.5 && Math.abs(m.vy)<0.5){
-monkeys.splice(i,1);
-monkeysDefeated++;
+    m.vx = Math.max(-3.5, Math.min(3.5, m.vx));
+    m.vy = Math.max(-3.5, Math.min(3.5, m.vy));
 
-bananaMeter += 1;
-if(bananaMeter >= bananaMax){
-bananaMeter = bananaMax;
-bananaReady = true;
-}
+    m.x += m.vx;
+    m.y += m.vy;
 
-}
-continue;
-}
+    if (dist < punch.size) {
+      gameState = "irisClosing";
+      finalTime = score;
+      finalMonkeys = monkeysDefeated;
 
-const dx = punch.x-m.x;
-const dy = punch.y-m.y;
-const dist = Math.sqrt(dx*dx+dy*dy)||0.001;
+      loseSound.play();
+      backgroundMusic.pause();
 
-let aggression = 1;
-if(dist < 120){
-aggression = 1.2;
-dangerNearby = true;
-}
+      if (score > bestScore) bestScore = score;
+    }
+  }
 
-const targetVX = (dx/dist) * m.speed * aggression;
-const targetVY = (dy/dist) * m.speed * aggression;
+  if (punch.happyTimer > 0) {
+    punch.state = "happy";
+  } else if (dangerNearby) {
+    punch.state = "sad";
+  } else {
+    punch.state = "neutral";
+  }
 
-m.vx += (targetVX - m.vx) * 0.08;
-m.vy += (targetVY - m.vy) * 0.08;
-
-m.vx = Math.max(-3.5, Math.min(3.5, m.vx));
-m.vy = Math.max(-3.5, Math.min(3.5, m.vy));
-
-m.x += m.vx;
-m.y += m.vy;
-
-if(dist < punch.size){
-
-gameState="irisClosing";
-finalTime=score;
-finalMonkeys=monkeysDefeated;
-
-loseSound.play();
-backgroundMusic.pause();
-
-if(score > bestScore) bestScore=score;
-
-}
-
-}
-
-if(punch.happyTimer > 0){
-punch.state = "happy";
-}
-else if(dangerNearby){
-punch.state = "sad";
-}
-else{
-punch.state = "neutral";
-}
-
-score += 0.016;
-
+  score += 0.016;
 }
 
 /* DRAW */
 
-function draw(){
+function draw() {
+  ctx.clearRect(0, 0, width, height);
+  ctx.textBaseline = "middle";
 
-ctx.clearRect(0,0,width,height);
-ctx.textBaseline = "middle";
+  /* START SCREEN */
+  if (gameState === "start") {
+    ctx.fillStyle = "#111";
+    ctx.fillRect(0, 0, width, height);
 
-/* START */
+    ctx.textAlign = "center";
 
-if(gameState==="start"){
+    ctx.fillStyle = "#FFE135";
+    ctx.font = "72px 'Luckiest Guy'";
+    ctx.fillText("PROTECT PUNCH", width / 2, height * 0.22);
 
-ctx.fillStyle="#111";
-ctx.fillRect(0,0,width,height);
+    let bob = Math.sin(Date.now() * 0.004) * 8;
 
-ctx.textAlign="center";
+    ctx.drawImage(punchNeutral, width / 2 - 70, height * 0.28 + bob, 140, 140);
 
-ctx.fillStyle="#FFE135";
-ctx.font="72px 'Luckiest Guy'";
-ctx.fillText("PROTECT PUNCH", width/2, height*0.22);
+    ctx.fillStyle = "white";
+    ctx.font = "13px 'Press Start 2P'";
+    ctx.fillText("BEST: " + bestScore.toFixed(1) + " SEC", width / 2, 310);
 
-let bob = Math.sin(Date.now()*0.004)*8;
+    ctx.fillText("MONKEYS ELIMINATED", width / 2, 350);
 
-ctx.drawImage(punchNeutral, width/2-70, height*0.28+bob, 140, 140);
+    ctx.font = "20px 'Press Start 2P'";
+    ctx.fillText(finalMonkeys, width / 2, 390);
 
-ctx.fillStyle="white";
-ctx.font="13px 'Press Start 2P'";
-ctx.fillText("BEST: "+bestScore.toFixed(1)+" SEC", width/2, 310);
+    ctx.fillStyle = "#FFE135";
+    ctx.font = "15px 'Press Start 2P'";
+    ctx.fillText(startClicked ? "CLICK TO PLAY" : "CLICK TO START", width / 2, height * 0.96);
 
-ctx.fillText("MONKEYS ELIMINATED", width/2, 350);
+    return;
+  }
 
-ctx.font="20px 'Press Start 2P'";
-ctx.fillText(finalMonkeys, width/2, 390);
+  /* GAMEPLAY + END */
+  ctx.drawImage(zooBackground, 0, 0, width, height);
 
-ctx.fillStyle="#FFE135";
-ctx.font="15px 'Press Start 2P'";
-ctx.fillText(startClicked ? "CLICK TO PLAY" : "CLICK TO START", width/2, height*0.96);
+  /* DRAW PUNCH with shape-hugging glow via shadowBlur */
+  if (gameState === "playing" || gameState === "irisClosing") {
+    const glowProgress = bananaMeter / bananaMax;
 
-return;
+    let punchSprite = punchNeutral;
+    if (punch.state === "happy") punchSprite = punchHappy;
+    if (punch.state === "sad") punchSprite = punchSad;
 
+    ctx.save();
+    ctx.translate(punch.x, punch.y);
+    ctx.scale(punch.facing, 1);
+
+    if (glowProgress > 0) {
+      const now = Date.now();
+      const pulseSpeed = 0.003 + glowProgress * 0.015;
+      const pulse = 0.5 + Math.sin(now * pulseSpeed) * 0.5;
+
+      const glowAlpha = bananaReady
+        ? 0.6 + pulse * 0.4
+        : 0.3 + 0.5 * glowProgress;
+
+      const glowSize = bananaReady
+        ? 30 + pulse * 20
+        : 10 + 30 * glowProgress;
+
+      const passes = bananaReady ? 3 : 2;
+      for (let p = 0; p < passes; p++) {
+        ctx.shadowBlur = glowSize + p * 10;
+        ctx.shadowColor = `rgba(255, 200, 0, ${glowAlpha - p * 0.1})`;
+        ctx.drawImage(punchSprite, -64, -64, 128, 128);
+      }
+    }
+
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = "transparent";
+    ctx.drawImage(punchSprite, -64, -64, 128, 128);
+
+    ctx.restore();
+
+  } else {
+    let punchSprite = punchNeutral;
+    if (punch.state === "happy") punchSprite = punchHappy;
+    if (punch.state === "sad") punchSprite = punchSad;
+
+    ctx.save();
+    ctx.translate(punch.x, punch.y);
+    ctx.scale(punch.facing, 1);
+    ctx.drawImage(punchSprite, -64, -64, 128, 128);
+    ctx.restore();
+  }
+
+  /* 🍌 HINT / READY LABEL above Punch */
+  if (bananaReady) {
+    const flash = 0.6 + Math.sin(Date.now() * 0.01) * 0.4;
+    const hintBob = Math.sin(Date.now() * 0.006) * 4;
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "15px 'Press Start 2P'";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetY = 2;
+    ctx.fillStyle = `rgba(255, 50, 50, ${flash})`;
+    ctx.fillText("TAP ME!", punch.x, punch.y - 82 + hintBob);
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.restore();
+  }
+
+  /* WAVE ANNOUNCEMENT */
+  if (waveAnnounceTimer > 0) {
+    const alpha = Math.min(1, waveAnnounceTimer / 20);
+    const scale = 1 + (1 - waveAnnounceTimer / 90) * 0.3;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `${Math.round(28 * scale)}px 'Press Start 2P'`;
+    ctx.shadowColor = "rgba(0,0,0,0.8)";
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = "#FFE135";
+    ctx.fillText("WAVE " + waveNumber, width / 2, height * 0.18);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  /* MONKEYS */
+  monkeys.forEach(m => {
+    const dx = punch.x - m.x;
+    const dy = punch.y - m.y;
+    const angle = Math.atan2(dy, dx) - Math.PI / 2;
+    const half = m.drawSize / 2;
+    ctx.save();
+    ctx.translate(m.x, m.y);
+    ctx.rotate(angle);
+    ctx.drawImage(monkeyFrames[currentFrame], -half, -half, m.drawSize, m.drawSize);
+    ctx.restore();
+  });
+
+  /* IRIS CLOSE */
+  if (gameState === "irisClosing") {
+    irisRadius -= 18;
+    ctx.beginPath();
+    ctx.rect(0, 0, width, height);
+    ctx.arc(punch.x, punch.y, irisRadius, 0, Math.PI * 2, true);
+    ctx.fillStyle = "black";
+    ctx.fill();
+    if (irisRadius <= 0) gameState = "end";
+  }
+
+  /* END SCREEN */
+  if (gameState === "end") {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, width, height);
+
+    let pulse = Math.sin(Date.now() * 0.005) * 5;
+
+    ctx.textAlign = "center";
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = "#2a2a2a";
+    ctx.fillStyle = "#FFE135";
+    ctx.font = "64px 'Luckiest Guy'";
+    ctx.strokeText("PUNCH GOT BULLIED!", width / 2, height * 0.18 + pulse);
+    ctx.fillText("PUNCH GOT BULLIED!", width / 2, height * 0.18 + pulse);
+
+    ctx.drawImage(punchSad, width / 2 - 70, height * 0.22, 140, 140);
+
+    ctx.fillStyle = "white";
+
+    ctx.font = "13px 'Press Start 2P'";
+    ctx.fillText("SURVIVAL TIME", width / 2, height * 0.60);
+
+    ctx.font = "20px 'Press Start 2P'";
+    ctx.fillText(finalTime.toFixed(1) + " SEC", width / 2, height * 0.68);
+
+    ctx.font = "13px 'Press Start 2P'";
+    ctx.fillText("BEST: " + bestScore.toFixed(1) + " SEC", width / 2, height * 0.75);
+
+    ctx.font = "13px 'Press Start 2P'";
+    ctx.fillText("MONKEYS ELIMINATED", width / 2, height * 0.83);
+
+    ctx.font = "20px 'Press Start 2P'";
+    ctx.fillText(finalMonkeys, width / 2, height * 0.90);
+
+    ctx.font = "13px 'Press Start 2P'";
+    ctx.fillStyle = "#FFE135";
+    ctx.fillText("WAVES SURVIVED: " + (waveNumber - 1), width / 2, height * 0.95);
+
+    drawButton("PLAY AGAIN", playBtnX, btnY, btnW, btnH, "#27ae60");
+    drawButton("SHARE", shareBtnX, btnY, btnW, btnH, "#2980b9");
+  }
 }
 
-/* GAMEPLAY + END */
-
-ctx.drawImage(zooBackground,0,0,width,height);
-
-let punchSprite=punchNeutral;
-if(punch.state==="happy") punchSprite=punchHappy;
-if(punch.state==="sad") punchSprite=punchSad;
-
-ctx.save();
-ctx.translate(punch.x, punch.y);
-ctx.scale(punch.facing, 1);
-ctx.drawImage(punchSprite, -64, -64, 128, 128);
-ctx.restore();
-
-monkeys.forEach(m=>{
-const dx=punch.x-m.x;
-const dy=punch.y-m.y;
-const angle=Math.atan2(dy,dx)-Math.PI/2;
-const half=m.drawSize/2;
-ctx.save();
-ctx.translate(m.x,m.y);
-ctx.rotate(angle);
-ctx.drawImage(monkeyFrames[currentFrame], -half, -half, m.drawSize, m.drawSize);
-ctx.restore();
-});
-
-/* 🍌 BANANA RING UI (TOP LEFT + FLASH) */
-
-ctx.save();
-
-const uiX = 46;
-const uiY = 46;
-const radius = 26;
-
-const progress = bananaMeter / bananaMax;
-
-// flashing effect
-let flash = 1;
-if(bananaReady){
-flash = 0.6 + Math.sin(Date.now() * 0.01) * 0.4;
-}
-
-// background
-ctx.beginPath();
-ctx.arc(uiX, uiY, radius, 0, Math.PI * 2);
-ctx.fillStyle = "rgba(0,0,0,0.5)";
-ctx.fill();
-
-// progress ring
-ctx.beginPath();
-ctx.arc(
-uiX,
-uiY,
-radius,
--Math.PI / 2,
--Math.PI / 2 + (Math.PI * 2 * progress)
-);
-
-ctx.strokeStyle = bananaReady ? `rgba(255,225,53,${flash})` : "#f1c40f";
-ctx.lineWidth = 6;
-ctx.lineCap = "round";
-ctx.stroke();
-
-// banana icon
-ctx.textAlign = "center";
-ctx.textBaseline = "middle";
-ctx.font = "20px Arial";
-ctx.fillText("🍌", uiX, uiY);
-
-// ready text
-if(bananaReady){
-ctx.fillStyle = `rgba(255,225,53,${flash})`;
-ctx.font = "10px 'Press Start 2P'";
-ctx.fillText("READY", uiX, uiY + 35);
-}
-
-ctx.restore();
-
-if(gameState==="irisClosing"){
-irisRadius -= 18;
-ctx.beginPath();
-ctx.rect(0,0,width,height);
-ctx.arc(punch.x,punch.y,irisRadius,0,Math.PI*2,true);
-ctx.fillStyle="black";
-ctx.fill();
-if(irisRadius <= 0) gameState="end";
-}
-
-if(gameState==="end"){
-
-ctx.fillStyle="black";
-ctx.fillRect(0,0,width,height);
-
-let pulse = Math.sin(Date.now()*0.005)*5;
-
-ctx.textAlign="center";
-ctx.lineWidth = 8;
-ctx.strokeStyle = "#2a2a2a";
-ctx.fillStyle = "#FFE135";
-ctx.font = "64px 'Luckiest Guy'";
-ctx.strokeText("PUNCH GOT BULLIED!", width/2, height*0.18+pulse);
-ctx.fillText("PUNCH GOT BULLIED!", width/2, height*0.18+pulse);
-
-ctx.drawImage(punchSad, width/2-70, height*0.22, 140, 140);
-
-ctx.fillStyle="white";
-
-ctx.font="13px 'Press Start 2P'";
-ctx.fillText("SURVIVAL TIME", width/2, height*0.60);
-
-ctx.font="20px 'Press Start 2P'";
-ctx.fillText(finalTime.toFixed(1)+" SEC", width/2, height*0.68);
-
-ctx.font="13px 'Press Start 2P'";
-ctx.fillText("BEST: "+bestScore.toFixed(1)+" SEC", width/2, height*0.75);
-
-ctx.font="13px 'Press Start 2P'";
-ctx.fillText("MONKEYS ELIMINATED", width/2, height*0.83);
-
-ctx.font="20px 'Press Start 2P'";
-ctx.fillText(finalMonkeys, width/2, height*0.90);
-
-drawButton("PLAY AGAIN", playBtnX, btnY, btnW, btnH, "#27ae60");
-drawButton("SHARE", shareBtnX, btnY, btnW, btnH, "#2980b9");
-
-}
-
-}
-
-function loop(){
-update();
-draw();
-requestAnimationFrame(loop);
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
 }
 
 loop();
