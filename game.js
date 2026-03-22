@@ -477,48 +477,59 @@ function draw() {
   /* GAMEPLAY + END */
   ctx.drawImage(zooBackground, 0, 0, width, height);
 
-  /* 🍌 PUNCH GLOW — drawn BEFORE punch sprite so glow sits behind */
+  /* DRAW PUNCH with shape-hugging glow via shadowBlur */
   if (gameState === "playing" || gameState === "irisClosing") {
     const glowProgress = bananaMeter / bananaMax;
+
+    let punchSprite = punchNeutral;
+    if (punch.state === "happy") punchSprite = punchHappy;
+    if (punch.state === "sad") punchSprite = punchSad;
+
+    ctx.save();
+    ctx.translate(punch.x, punch.y);
+    ctx.scale(punch.facing, 1);
 
     if (glowProgress > 0) {
       const now = Date.now();
       const pulseSpeed = 0.003 + glowProgress * 0.015;
       const pulse = 0.5 + Math.sin(now * pulseSpeed) * 0.5;
 
-      const numRings = bananaReady ? 3 : 1;
+      const glowAlpha = bananaReady
+        ? 0.6 + pulse * 0.4
+        : 0.3 + 0.5 * glowProgress;
 
-      for (let r = 0; r < numRings; r++) {
-        const ringOffset = bananaReady ? Math.sin(now * 0.005 + r * 1.2) * 12 : 0;
-        const ringRadius = 60 + 35 * glowProgress + r * 22 + ringOffset;
+      const glowSize = bananaReady
+        ? 30 + pulse * 20
+        : 10 + 30 * glowProgress;
 
-        const ringAlpha = bananaReady
-          ? (0.7 - r * 0.15) * (0.5 + pulse * 0.5)
-          : 0.15 + 0.65 * glowProgress * (0.6 + pulse * 0.4);
-
-        const gradient = ctx.createRadialGradient(punch.x, punch.y, 10, punch.x, punch.y, ringRadius);
-        gradient.addColorStop(0,   `rgba(255, 200, 0, ${ringAlpha})`);
-        gradient.addColorStop(0.4, `rgba(255, 140, 0, ${ringAlpha * 0.8})`);
-        gradient.addColorStop(1,   `rgba(180, 80, 0, 0)`);
-
-        ctx.beginPath();
-        ctx.arc(punch.x, punch.y, ringRadius, 0, Math.PI * 2);
-        ctx.fillStyle = gradient;
-        ctx.fill();
+      // Draw sprite multiple times with increasing shadow to build up intensity
+      const passes = bananaReady ? 3 : 2;
+      for (let p = 0; p < passes; p++) {
+        ctx.shadowBlur = glowSize + p * 10;
+        ctx.shadowColor = `rgba(255, 200, 0, ${glowAlpha - p * 0.1})`;
+        ctx.drawImage(punchSprite, -64, -64, 128, 128);
       }
     }
+
+    // Final clean draw on top with no shadow
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = "transparent";
+    ctx.drawImage(punchSprite, -64, -64, 128, 128);
+
+    ctx.restore();
+
+  } else {
+    /* Non-playing states — draw punch normally */
+    let punchSprite = punchNeutral;
+    if (punch.state === "happy") punchSprite = punchHappy;
+    if (punch.state === "sad") punchSprite = punchSad;
+
+    ctx.save();
+    ctx.translate(punch.x, punch.y);
+    ctx.scale(punch.facing, 1);
+    ctx.drawImage(punchSprite, -64, -64, 128, 128);
+    ctx.restore();
   }
-
-  /* DRAW PUNCH */
-  let punchSprite = punchNeutral;
-  if (punch.state === "happy") punchSprite = punchHappy;
-  if (punch.state === "sad") punchSprite = punchSad;
-
-  ctx.save();
-  ctx.translate(punch.x, punch.y);
-  ctx.scale(punch.facing, 1);
-  ctx.drawImage(punchSprite, -64, -64, 128, 128);
-  ctx.restore();
 
   /* 🍌 HINT / READY LABEL above Punch */
   if (bananaReady) {
