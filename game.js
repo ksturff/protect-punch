@@ -540,9 +540,6 @@ function draw() {
     ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
     ctx.shadowBlur = 6;
     ctx.shadowOffsetY = 2;
-    ctx.strokeStyle = `rgba(80, 0, 0, ${flash})`;
-    ctx.lineWidth = 4;
-    ctx.strokeText(!bananaHintShown ? "TAP ME!" : "READY!", punch.x, punch.y - 82 + hintBob);
     ctx.fillStyle = `rgba(255, 50, 50, ${flash})`;
     ctx.fillText(!bananaHintShown ? "TAP ME!" : "READY!", punch.x, punch.y - 82 + hintBob);
     ctx.shadowBlur = 0;
