@@ -277,8 +277,8 @@ if(gameState!=="playing") return;
    if(gameState!=="playing") return;
 
 /* 🍌 UNIVERSAL BANANA CLICK */
-const bananaX = 60;
-const bananaY = 50;
+const bananaX = 46;
+const bananaY = 46;
 const bananaRadius = 26;
 
 const dxUI = mouseX - bananaX;
@@ -293,7 +293,7 @@ if(distUI < bananaRadius){
       navigator.vibrate(100);
     }
   }
-  return; // 🚨 THIS LINE IS CRITICAL
+  return;
 }
 
 for(let i=monkeys.length-1;i>=0;i--){
@@ -561,8 +561,8 @@ ctx.restore();
 
 ctx.save();
 
-const uiX = 70;
-const uiY = 50;
+const uiX = 46;
+const uiY = 46;
 const radius = 26;
 
 const progress = bananaMeter / bananaMax;
