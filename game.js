@@ -538,8 +538,8 @@ function draw() {
     ctx.save();
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillStyle = `rgba(255, 225, 53, ${flash})`;
-    ctx.font = "11px 'Press Start 2P'";
+   ctx.fillStyle = `rgba(255, 50, 50, ${flash})`;
+     ctx.font = "11px 'Press Start 2P'";
     ctx.fillText(!bananaHintShown ? "TAP ME!" : "READY!", punch.x, punch.y - 82 + hintBob);
     ctx.restore();
   }
