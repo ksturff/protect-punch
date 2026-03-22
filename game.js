@@ -496,10 +496,16 @@ function draw() {
           ? (0.7 - r * 0.15) * (0.5 + pulse * 0.5)
           : 0.15 + 0.65 * glowProgress * (0.6 + pulse * 0.4);
 
+        // Dark shadow ring for contrast against sandy background
+        ctx.beginPath();
+        ctx.arc(punch.x, punch.y, ringRadius + 8, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 0, 0, ${ringAlpha * 0.5})`;
+        ctx.fill();
+
         const gradient = ctx.createRadialGradient(punch.x, punch.y, 10, punch.x, punch.y, ringRadius);
-        gradient.addColorStop(0,   `rgba(255, 230, 50, ${ringAlpha})`);
-        gradient.addColorStop(0.5, `rgba(255, 160, 0, ${ringAlpha * 0.6})`);
-        gradient.addColorStop(1,   `rgba(255, 80,  0, 0)`);
+        gradient.addColorStop(0,   `rgba(255, 200, 0, ${ringAlpha})`);
+        gradient.addColorStop(0.4, `rgba(255, 140, 0, ${ringAlpha * 0.8})`);
+        gradient.addColorStop(1,   `rgba(180, 80, 0, 0)`);
 
         ctx.beginPath();
         ctx.arc(punch.x, punch.y, ringRadius, 0, Math.PI * 2);
