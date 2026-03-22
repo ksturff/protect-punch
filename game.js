@@ -31,7 +31,7 @@ let finalMonkeys = 0;
 let bananaMeter = 0;
 let bananaMax = 10;
 let bananaReady = false;
-let bananaHintShown = false; // disappears after first use
+let bananaHintShown = false;
 
 /* ---------------------------
    CONTINUOUS DIFFICULTY SYSTEM
@@ -483,22 +483,23 @@ function draw() {
 
     if (glowProgress > 0) {
       const now = Date.now();
-      const pulseSpeed = 0.004 + glowProgress * 0.012;
-      const pulse = 0.3 + Math.sin(now * pulseSpeed) * 0.2;
+      const pulseSpeed = 0.003 + glowProgress * 0.015;
+      const pulse = 0.5 + Math.sin(now * pulseSpeed) * 0.5;
 
       const numRings = bananaReady ? 3 : 1;
 
       for (let r = 0; r < numRings; r++) {
-        const ringOffset = bananaReady ? Math.sin(now * 0.005 + r * 1.2) * 10 : 0;
-        const ringRadius = 55 + 25 * glowProgress + r * 20 + ringOffset;
-        const ringAlpha = bananaReady
-          ? (0.4 - r * 0.1) * (0.6 + Math.sin(now * 0.01) * 0.4)
-          : 0.3 * glowProgress * pulse;
+        const ringOffset = bananaReady ? Math.sin(now * 0.005 + r * 1.2) * 12 : 0;
+        const ringRadius = 60 + 35 * glowProgress + r * 22 + ringOffset;
 
-        const gradient = ctx.createRadialGradient(punch.x, punch.y, 20, punch.x, punch.y, ringRadius);
-        gradient.addColorStop(0, `rgba(255, 220, 50, ${ringAlpha})`);
-        gradient.addColorStop(0.6, `rgba(255, 160, 0, ${ringAlpha * 0.4})`);
-        gradient.addColorStop(1, `rgba(255, 100, 0, 0)`);
+        const ringAlpha = bananaReady
+          ? (0.7 - r * 0.15) * (0.5 + pulse * 0.5)
+          : 0.15 + 0.65 * glowProgress * (0.6 + pulse * 0.4);
+
+        const gradient = ctx.createRadialGradient(punch.x, punch.y, 10, punch.x, punch.y, ringRadius);
+        gradient.addColorStop(0,   `rgba(255, 230, 50, ${ringAlpha})`);
+        gradient.addColorStop(0.5, `rgba(255, 160, 0, ${ringAlpha * 0.6})`);
+        gradient.addColorStop(1,   `rgba(255, 80,  0, 0)`);
 
         ctx.beginPath();
         ctx.arc(punch.x, punch.y, ringRadius, 0, Math.PI * 2);
