@@ -274,6 +274,28 @@ return;
 
 if(gameState!=="playing") return;
 
+   if(gameState!=="playing") return;
+
+/* 🍌 UNIVERSAL BANANA CLICK */
+const bananaX = width / 2;
+const bananaY = 50;
+const bananaRadius = 26;
+
+const dxUI = mouseX - bananaX;
+const dyUI = mouseY - bananaY;
+const distUI = Math.sqrt(dxUI * dxUI + dyUI * dyUI);
+
+if(distUI < bananaRadius){
+  if(bananaReady){
+    triggerBanana();
+
+    if(navigator.vibrate){
+      navigator.vibrate(100);
+    }
+  }
+  return; // 🚨 THIS LINE IS CRITICAL
+}
+
 for(let i=monkeys.length-1;i>=0;i--){
 
 const m = monkeys[i];
