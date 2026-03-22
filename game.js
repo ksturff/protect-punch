@@ -215,12 +215,14 @@ function spawnMonkey() {
   const baseDrawSize = 64;
   const finalDrawSize = Math.round(baseDrawSize * sizeVariation);
 
+  const speedMultiplier = side === 2 ? 0.55 : 1;
+
   monkeys.push({
     x: x,
     y: y,
     size: finalSize,
     drawSize: finalDrawSize,
-    speed: type === "fast" ? speed * 1.2 : speed,
+    speed: (type === "fast" ? speed * 1.2 : speed) * speedMultiplier,
     hit: false,
     vx: 0,
     vy: 0
@@ -541,8 +543,8 @@ function draw() {
     ctx.shadowBlur = 6;
     ctx.shadowOffsetY = 2;
     ctx.fillStyle = `rgba(255, 50, 50, ${flash})`;
-ctx.fillText("TAP ME!", punch.x, punch.y - 82 + hintBob);
-     ctx.shadowBlur = 0;
+    ctx.fillText("TAP ME!", punch.x, punch.y - 82 + hintBob);
+    ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
     ctx.restore();
   }
