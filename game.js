@@ -37,13 +37,13 @@ let bananaHintShown = false;
    WAVE SYSTEM
 ---------------------------- */
 let waveNumber = 0;
-let wavePhase = "waiting";
+let wavePhase = "waiting"; // "waiting" | "spawning" | "complete" | "incoming"
 let waveTimer = 0;
-let waveBreatherDuration = 180;
 let waveSpawnQueue = 0;
 let waveSpawnTimer = 0;
 let waveSpawnInterval = 6;
 let waveAnnounceTimer = 0;
+let waveMessage = "";
 
 /* ---------------------------
    CONTINUOUS DIFFICULTY SYSTEM
@@ -192,10 +192,11 @@ function resetGame() {
 
   waveNumber = 0;
   wavePhase = "waiting";
-  waveTimer = 60;
+  waveTimer = 90;
   waveSpawnQueue = 0;
   waveSpawnTimer = 0;
   waveAnnounceTimer = 0;
+  waveMessage = "";
 
   restartBtn.style.display = "none";
   shareBtn.style.display = "none";
@@ -211,14 +212,14 @@ resetGame();
 function startNextWave() {
   waveNumber++;
   wavePhase = "spawning";
+  waveMessage = "WAVE " + waveNumber;
   waveAnnounceTimer = 90;
 
-  waveSpawnQueue = Math.min(3 + Math.floor(waveNumber * 1.2), 12);
+  // Waves get bigger — starts at 4, grows meaningfully each wave
+  waveSpawnQueue = Math.min(4 + Math.floor(waveNumber * 1.5), 16);
   waveSpawnTimer = 0;
 
-  waveBreatherDuration = Math.max(90, 220 - waveNumber * 8);
-
-  // Faster burst interval that tightens over time
+  // Burst fires fast, tightens over time
   waveSpawnInterval = Math.max(4, 12 - Math.floor(waveNumber * 0.3));
 }
 
@@ -395,20 +396,31 @@ function update() {
         waveSpawnQueue--;
         waveSpawnTimer = waveSpawnInterval;
       }
-    } else {
-      // Done spawning — wait for screen to clear OR breather to expire
-      if (monkeys.length === 0 || waveTimer <= 0) {
-        wavePhase = "breather";
-        waveTimer = waveBreatherDuration;
-      } else {
-        waveTimer--;
-      }
+    } else if (monkeys.length === 0) {
+      // All cleared — show complete message
+      wavePhase = "complete";
+      waveMessage = "WAVE " + waveNumber + " COMPLETE!";
+      waveAnnounceTimer = 120; // 2 seconds
+      waveTimer = 120;
     }
   }
 
-  else if (wavePhase === "breather") {
+  else if (wavePhase === "complete") {
     waveTimer--;
-    if (waveTimer <= 0) startNextWave();
+    if (waveTimer <= 0) {
+      // Switch to incoming message
+      wavePhase = "incoming";
+      waveMessage = "WAVE " + (waveNumber + 1) + " INCOMING!";
+      waveAnnounceTimer = 120;
+      waveTimer = 120; // 2 seconds
+    }
+  }
+
+  else if (wavePhase === "incoming") {
+    waveTimer--;
+    if (waveTimer <= 0) {
+      startNextWave();
+    }
   }
 
   let dangerNearby = false;
@@ -589,19 +601,21 @@ function draw() {
     ctx.restore();
   }
 
-  /* WAVE ANNOUNCEMENT */
-  if (waveAnnounceTimer > 0) {
+  /* WAVE MESSAGE */
+  if (waveAnnounceTimer > 0 && waveMessage !== "") {
     const alpha = Math.min(1, waveAnnounceTimer / 20);
-    const scale = 1 + (1 - waveAnnounceTimer / 90) * 0.3;
+    const isComplete = waveMessage.includes("COMPLETE");
+    const isIncoming = waveMessage.includes("INCOMING");
+
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = `${Math.round(28 * scale)}px 'Press Start 2P'`;
-    ctx.shadowColor = "rgba(0,0,0,0.8)";
-    ctx.shadowBlur = 10;
-    ctx.fillStyle = "#FFE135";
-    ctx.fillText("WAVE " + waveNumber, width / 2, height * 0.18);
+    ctx.font = "14px 'Press Start 2P'";
+    ctx.shadowColor = "rgba(0,0,0,0.9)";
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = isComplete ? "#44ff88" : isIncoming ? "#ff4444" : "#FFE135";
+    ctx.fillText(waveMessage, width / 2, height * 0.18);
     ctx.globalAlpha = 1;
     ctx.restore();
   }
