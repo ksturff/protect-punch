@@ -26,6 +26,13 @@ let finalTime = 0;
 let finalMonkeys = 0;
 
 /* ---------------------------
+   🍌 BANANA SYSTEM
+---------------------------- */
+let bananaMeter = 0;
+let bananaMax = 15;
+let bananaReady = false;
+
+/* ---------------------------
    CONTINUOUS DIFFICULTY SYSTEM
 ---------------------------- */
 
@@ -173,6 +180,9 @@ difficultyTimer = 0;
 spikeTimer = 0;
 spikeActive = false;
 
+bananaMeter = 0;
+bananaReady = false;
+
 restartBtn.style.display="none";
 shareBtn.style.display="none";
 
@@ -295,6 +305,33 @@ punch.facing = m.x < punch.x ? 1 : -1;
 
 });
 
+/* 🍌 RIGHT CLICK */
+canvas.addEventListener("contextmenu", function(e){
+e.preventDefault();
+
+if(gameState !== "playing") return;
+if(!bananaReady) return;
+
+triggerBanana();
+});
+
+/* 🍌 BANANA FUNCTION */
+function triggerBanana(){
+
+bananaReady = false;
+bananaMeter = 0;
+
+monkeys.forEach(m => {
+const dx = m.x - punch.x;
+const dy = m.y - punch.y;
+const angle = Math.atan2(dy, dx);
+
+m.vx = Math.cos(angle) * 12;
+m.vy = Math.sin(angle) * 12;
+});
+
+}
+
 function update(){
 
 if(gameState!=="playing") return;
@@ -365,6 +402,14 @@ m.vy *= 0.85;
 if(Math.abs(m.vx)<0.5 && Math.abs(m.vy)<0.5){
 monkeys.splice(i,1);
 monkeysDefeated++;
+
+/* 🍌 FILL METER */
+bananaMeter += 1;
+if(bananaMeter >= bananaMax){
+bananaMeter = bananaMax;
+bananaReady = true;
+}
+
 }
 continue;
 }
@@ -486,6 +531,28 @@ ctx.rotate(angle);
 ctx.drawImage(monkeyFrames[currentFrame], -half, -half, m.drawSize, m.drawSize);
 ctx.restore();
 });
+
+/* 🍌 DRAW METER */
+const barWidth = 200;
+const barHeight = 14;
+const barX = width/2 - barWidth/2;
+const barY = 20;
+
+ctx.fillStyle = "rgba(0,0,0,0.5)";
+ctx.fillRect(barX, barY, barWidth, barHeight);
+
+ctx.fillStyle = bananaReady ? "#FFE135" : "#f1c40f";
+ctx.fillRect(barX, barY, (bananaMeter/bananaMax)*barWidth, barHeight);
+
+ctx.strokeStyle = "white";
+ctx.strokeRect(barX, barY, barWidth, barHeight);
+
+if(bananaReady){
+ctx.fillStyle = "#FFE135";
+ctx.font = "12px 'Press Start 2P'";
+ctx.textAlign = "center";
+ctx.fillText("BANANA READY (RIGHT CLICK)", width/2, barY + 30);
+}
 
 if(gameState==="irisClosing"){
 irisRadius -= 18;
