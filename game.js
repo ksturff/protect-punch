@@ -3,19 +3,8 @@ const ctx = canvas.getContext("2d");
 
 const restartBtn = document.getElementById("restartBtn");
 const shareBtn = document.getElementById("shareBtn");
-let width = canvas.width;
-let height = canvas.height;
-
-function resizeCanvas(){
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  width = canvas.width;
-  height = canvas.height;
-}
-
-resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
+const width = canvas.width;
+const height = canvas.height;
 
 let gameState = "start";
 let startClicked = false;
@@ -155,7 +144,7 @@ return mx > x - w/2 && mx < x + w/2 && my > y - h/2 && my < y + h/2;
 }
 
 /* button positions */
-const btnY = height * 0.88;
+const btnY = height * 0.95;
 const btnW = 160;
 const btnH = 44;
 const playBtnX = width/2 - 160;
