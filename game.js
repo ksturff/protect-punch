@@ -29,7 +29,7 @@ let finalMonkeys = 0;
    🍌 BANANA SYSTEM
 ---------------------------- */
 let bananaMeter = 0;
-let bananaMax = 15;
+let bananaMax = 10;
 let bananaReady = false;
 
 /* ---------------------------
@@ -315,7 +315,7 @@ if(!bananaReady) return;
 triggerBanana();
 });
 
-/* 🍌 BANANA FUNCTION (FULL BOARD WIPE) */
+/* 🍌 BANANA FUNCTION */
 function triggerBanana(){
 
 bananaReady = false;
@@ -535,26 +535,52 @@ ctx.drawImage(monkeyFrames[currentFrame], -half, -half, m.drawSize, m.drawSize);
 ctx.restore();
 });
 
-/* 🍌 DRAW METER */
-const barWidth = 200;
-const barHeight = 14;
-const barX = width/2 - barWidth/2;
-const barY = 20;
+/* 🍌 BANANA RING UI (TOP + FLASH) */
 
-ctx.fillStyle = "rgba(0,0,0,0.5)";
-ctx.fillRect(barX, barY, barWidth, barHeight);
+const uiX = width / 2;
+const uiY = 50;
+const radius = 26;
 
-ctx.fillStyle = bananaReady ? "#FFE135" : "#f1c40f";
-ctx.fillRect(barX, barY, (bananaMeter/bananaMax)*barWidth, barHeight);
+const progress = bananaMeter / bananaMax;
 
-ctx.strokeStyle = "white";
-ctx.strokeRect(barX, barY, barWidth, barHeight);
-
+// flashing effect
+let flash = 1;
 if(bananaReady){
-ctx.fillStyle = "#FFE135";
-ctx.font = "12px 'Press Start 2P'";
+flash = 0.6 + Math.sin(Date.now() * 0.01) * 0.4;
+}
+
+// background
+ctx.beginPath();
+ctx.arc(uiX, uiY, radius, 0, Math.PI * 2);
+ctx.fillStyle = "rgba(0,0,0,0.5)";
+ctx.fill();
+
+// progress ring
+ctx.beginPath();
+ctx.arc(
+uiX,
+uiY,
+radius,
+-Math.PI / 2,
+-Math.PI / 2 + (Math.PI * 2 * progress)
+);
+
+ctx.strokeStyle = bananaReady ? `rgba(255,225,53,${flash})` : "#f1c40f";
+ctx.lineWidth = 6;
+ctx.lineCap = "round";
+ctx.stroke();
+
+// banana icon
+ctx.font = "20px Arial";
 ctx.textAlign = "center";
-ctx.fillText("BANANA READY (RIGHT CLICK)", width/2, barY + 30);
+ctx.textBaseline = "middle";
+ctx.fillText("🍌", uiX, uiY);
+
+// ready text flash
+if(bananaReady){
+ctx.fillStyle = `rgba(255,225,53,${flash})`;
+ctx.font = "10px 'Press Start 2P'";
+ctx.fillText("READY", uiX, uiY + 35);
 }
 
 if(gameState==="irisClosing"){
