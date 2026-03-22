@@ -559,7 +559,7 @@ ctx.restore();
 
 /* 🍌 BANANA RING UI (TOP + FLASH) */
 
-const uiX = width / 2;
+const uiX = 60;
 const uiY = 50;
 const radius = 26;
 
