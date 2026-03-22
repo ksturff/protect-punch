@@ -277,7 +277,7 @@ if(gameState!=="playing") return;
    if(gameState!=="playing") return;
 
 /* 🍌 UNIVERSAL BANANA CLICK */
-const bananaX = width / 2;
+const bananaX = 60;
 const bananaY = 50;
 const bananaRadius = 26;
 
