@@ -234,7 +234,9 @@ function buildWaveGroups() {
     const side = Math.floor(Math.random() * 4);
     const count = Math.min(2 + Math.floor(waveNumber * 0.6) + Math.floor(Math.random() * 2), 6);
     const pause = Math.max(40, 90 - waveNumber * 4);
-    const interval = Math.max(10, 22 - Math.floor(waveNumber * 0.5));
+    // Increased interval so monkeys in a group aren't right on top of each other
+    const interval = Math.max(22, 45 - Math.floor(waveNumber * 0.8));
+
     groups.push({ side, count, pause, interval });
   }
 
@@ -257,14 +259,15 @@ function startNextWave() {
 /* ---------------------------
    SPAWN MONKEY
 ---------------------------- */
-function spawnMonkey(forceSide) {
+function spawnMonkey(forceSide, spawnOffset) {
   const side = forceSide !== undefined ? forceSide : Math.floor(Math.random() * 4);
+  const offset = spawnOffset || 0;
 
   let x, y;
-  if (side === 0) { x = 0; y = Math.random() * height; }
-  else if (side === 1) { x = width; y = Math.random() * height; }
-  else if (side === 2) { x = Math.random() * width; y = 0; }
-  else { x = Math.random() * width; y = height; }
+  if (side === 0) { x = 0; y = Math.random() * height * 0.6 + height * 0.2 + offset; }
+  else if (side === 1) { x = width; y = Math.random() * height * 0.6 + height * 0.2 + offset; }
+  else if (side === 2) { x = Math.random() * width * 0.6 + width * 0.2 + offset; y = 0; }
+  else { x = Math.random() * width * 0.6 + width * 0.2 + offset; y = height; }
 
   let type = "normal";
   if (selectedMode === "survival") {
@@ -484,7 +487,10 @@ function update() {
           if (groupSpawnQueue > 0) {
             groupSpawnTimer--;
             if (groupSpawnTimer <= 0) {
-              spawnMonkey(group.side);
+              // Spread offset: each monkey in the group gets a nudge so they don't stack
+              const spreadIndex = group.count - groupSpawnQueue;
+              const spreadOffset = (spreadIndex - group.count / 2) * 55;
+              spawnMonkey(group.side, spreadOffset);
               groupSpawnQueue--;
               groupSpawnTimer = groupSpawnInterval;
             }
