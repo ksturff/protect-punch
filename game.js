@@ -312,12 +312,8 @@ canvas.addEventListener("click", function (e) {
 
   /* START SCREEN */
   if (gameState === "start") {
-    if (!startClicked) {
-      startClicked = true;
-      backgroundMusic.currentTime = 0;
-      backgroundMusic.play();
-      return;
-    }
+    backgroundMusic.currentTime = 0;
+    backgroundMusic.play();
     gameState = "modeSelect";
     return;
   }
@@ -616,7 +612,7 @@ function draw() {
 
     ctx.fillStyle = "#FFE135";
     ctx.font = "15px 'Press Start 2P'";
-    ctx.fillText(startClicked ? "CLICK TO PLAY" : "CLICK TO START", width / 2, height * 0.96);
+    ctx.fillText("CLICK TO START", width / 2, height * 0.96);
     return;
   }
 
