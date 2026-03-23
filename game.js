@@ -540,10 +540,12 @@ function update() {
       if (Math.abs(m.vx) < 0.5 && Math.abs(m.vy) < 0.5) {
         monkeys.splice(i, 1);
         monkeysDefeated++;
-        bananaMeter += 1;
-        if (bananaMeter >= bananaMax) {
-          bananaMeter = bananaMax;
-          bananaReady = true;
+        if (selectedMode === "survival") {
+          bananaMeter += 1;
+          if (bananaMeter >= bananaMax) {
+            bananaMeter = bananaMax;
+            bananaReady = true;
+          }
         }
       }
       continue;
@@ -659,7 +661,7 @@ function draw() {
     ctx.translate(punch.x, punch.y);
     ctx.scale(punch.facing, 1);
 
-    if (glowProgress > 0) {
+    if (glowProgress > 0 && selectedMode === "survival") {
       const now = Date.now();
       const pulseSpeed = 0.003 + glowProgress * 0.015;
       const pulse = 0.5 + Math.sin(now * pulseSpeed) * 0.5;
@@ -690,7 +692,7 @@ function draw() {
   }
 
   /* TAP ME */
-  if (bananaReady) {
+  if (bananaReady && selectedMode === "survival") {
     const flash = 0.6 + Math.sin(Date.now() * 0.01) * 0.4;
     const hintBob = Math.sin(Date.now() * 0.006) * 4;
     ctx.save();
