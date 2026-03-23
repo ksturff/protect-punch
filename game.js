@@ -161,9 +161,9 @@ const shareBtnX = width / 2 + 160;
 const modeBtnW = 200;
 const modeBtnH = 54;
 const survivalBtnX = width / 2;
-const survivalBtnY = height * 0.60;
+const survivalBtnY = height * 0.53;
 const waveBtnX = width / 2;
-const waveBtnY = height * 0.75;
+const waveBtnY = height * 0.76;
 
 /* ---------------------------
    RESET
@@ -631,25 +631,25 @@ function draw() {
     ctx.fillText("CHOOSE YOUR MODE", width / 2, height * 0.18);
 
     let bob = Math.sin(Date.now() * 0.004) * 6;
-    ctx.drawImage(punchNeutral, width / 2 - 55, height * 0.26 + bob, 110, 110);
+    ctx.drawImage(punchNeutral, width / 2 - 55, height * 0.22 + bob, 110, 110);
 
     /* SURVIVAL button */
     drawButton("SURVIVAL", survivalBtnX, survivalBtnY, modeBtnW, modeBtnH, "#27ae60");
     ctx.fillStyle = "#aaaaaa";
     ctx.font = "9px 'Press Start 2P'";
-    ctx.fillText("endless trickle  ·  time score", width / 2, survivalBtnY + modeBtnH / 2 + 16);
+    ctx.fillText("endless trickle  ·  time score", width / 2, survivalBtnY + 38);
     ctx.fillStyle = "white";
     ctx.font = "11px 'Press Start 2P'";
-    ctx.fillText("BEST: " + bestScoreSurvival.toFixed(1) + " SEC", width / 2, survivalBtnY + modeBtnH / 2 + 34);
+    ctx.fillText("BEST: " + bestScoreSurvival.toFixed(1) + " SEC", width / 2, survivalBtnY + 56);
 
     /* WAVE MODE button */
     drawButton("WAVE MODE", waveBtnX, waveBtnY, modeBtnW, modeBtnH, "#8e44ad");
     ctx.fillStyle = "#aaaaaa";
     ctx.font = "9px 'Press Start 2P'";
-    ctx.fillText("organized groups  ·  waves score", width / 2, waveBtnY + modeBtnH / 2 + 16);
+    ctx.fillText("organized groups  ·  waves score", width / 2, waveBtnY + 38);
     ctx.fillStyle = "white";
     ctx.font = "11px 'Press Start 2P'";
-    ctx.fillText("BEST: " + bestScoreWave + " WAVES", width / 2, waveBtnY + modeBtnH / 2 + 34);
+    ctx.fillText("BEST: " + bestScoreWave + " WAVES", width / 2, waveBtnY + 56);
 
     return;
   }
