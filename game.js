@@ -64,13 +64,11 @@ let waveTimer = 90;
 let waveAnnounceTimer = 0;
 let waveMessage = "";
 
-let spawnGroups = [];
-let currentGroup = 0;
-let groupSpawnTimer = 0;
-let groupSpawnQueue = 0;
-let groupSpawnInterval = 0;
-let groupPauseTimer = 0;
-let groupPhase = "pause"; // "pause" | "spawning"
+// Clock spawning
+let clockPositions = [];   // array of angles in radians to spawn from
+let clockSpawnIndex = 0;   // which position we're up to
+let clockSpawnTimer = 0;   // frames between each spawn
+const CLOCK_SPAWN_INTERVAL = 18; // frames between each monkey spawning
 
 /* ---------------------------
    WAVE: DIFFICULTY
@@ -206,12 +204,9 @@ function resetGame() {
   waveTimer = 90;
   waveAnnounceTimer = 0;
   waveMessage = "";
-  spawnGroups = [];
-  currentGroup = 0;
-  groupSpawnQueue = 0;
-  groupSpawnTimer = 0;
-  groupPauseTimer = 0;
-  groupPhase = "pause";
+  clockPositions = [];
+  clockSpawnIndex = 0;
+  clockSpawnTimer = 0;
 
   restartBtn.style.display = "none";
   shareBtn.style.display = "none";
@@ -226,21 +221,31 @@ resetGame();
 /* ---------------------------
    WAVE HELPERS
 ---------------------------- */
-function buildWaveGroups() {
-  const groups = [];
-  const numGroups = Math.min(2 + Math.floor(waveNumber / 2), 5);
+/* ---------------------------
+   CLOCK WAVE BUILDER
+   Wave 1:  12 positions (every 30°  — the hours)
+   Wave 4+: 24 positions (every 15°  — hours + quarters)
+   Wave 8+: 48 positions (every 7.5° — filling in further)
+   Each wave also randomises a starting rotation so it feels fresh
+---------------------------- */
+function buildClockPositions() {
+  let divisions;
+  if (waveNumber >= 8) divisions = 48;
+  else if (waveNumber >= 4) divisions = 24;
+  else divisions = 12;
 
-  for (let g = 0; g < numGroups; g++) {
-    const side = Math.floor(Math.random() * 4);
-    const count = Math.min(2 + Math.floor(waveNumber * 0.6) + Math.floor(Math.random() * 2), 6);
-    const pause = Math.max(40, 90 - waveNumber * 4);
-    // Increased interval so monkeys in a group aren't right on top of each other
-    const interval = Math.max(22, 45 - Math.floor(waveNumber * 0.8));
+  // Cap to a sane number of monkeys per wave
+  const count = Math.min(divisions, 6 + waveNumber * 2);
+  // Pick evenly spaced positions from the full division set
+  const step = divisions / count;
+  const rotationOffset = Math.random() * Math.PI * 2; // random starting angle each wave
 
-    groups.push({ side, count, pause, interval });
+  const positions = [];
+  for (let i = 0; i < count; i++) {
+    const angle = rotationOffset + (i * step) * (Math.PI * 2 / divisions);
+    positions.push(angle);
   }
-
-  return groups;
+  return positions;
 }
 
 function startNextWave() {
@@ -249,25 +254,40 @@ function startNextWave() {
   waveMessage = "WAVE " + waveNumber;
   waveAnnounceTimer = 90;
 
-  spawnGroups = buildWaveGroups();
-  currentGroup = 0;
-  groupPauseTimer = 30;
-  groupSpawnQueue = 0;
-  groupPhase = "pause";
+  clockPositions = buildClockPositions();
+  clockSpawnIndex = 0;
+  clockSpawnTimer = 0;
 }
 
 /* ---------------------------
    SPAWN MONKEY
 ---------------------------- */
-function spawnMonkey(forceSide, spawnOffset) {
-  const side = forceSide !== undefined ? forceSide : Math.floor(Math.random() * 4);
-  const offset = spawnOffset || 0;
-
+function spawnMonkey(forceSide, spawnOffset, angle) {
   let x, y;
-  if (side === 0) { x = 0; y = Math.random() * height * 0.6 + height * 0.2 + offset; }
-  else if (side === 1) { x = width; y = Math.random() * height * 0.6 + height * 0.2 + offset; }
-  else if (side === 2) { x = Math.random() * width * 0.6 + width * 0.2 + offset; y = 0; }
-  else { x = Math.random() * width * 0.6 + width * 0.2 + offset; y = height; }
+
+  if (angle !== undefined) {
+    // Clock-based spawn: place on the edge of the canvas in the given direction
+    const cx = width / 2;
+    const cy = height / 2;
+    // Cast a ray from center outward at this angle and find where it hits the edge
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    // Find intersection with canvas edges
+    const tx = cos !== 0 ? (cos > 0 ? width : 0) : Infinity;
+    const ty = sin !== 0 ? (sin > 0 ? height : 0) : Infinity;
+    const tEdgeX = cos !== 0 ? (tx - cx) / cos : Infinity;
+    const tEdgeY = sin !== 0 ? (ty - cy) / sin : Infinity;
+    const t = Math.min(tEdgeX, tEdgeY);
+    x = cx + cos * t;
+    y = cy + sin * t;
+  } else {
+    const side = forceSide !== undefined ? forceSide : Math.floor(Math.random() * 4);
+    const offset = spawnOffset || 0;
+    if (side === 0) { x = 0; y = Math.random() * height * 0.6 + height * 0.2 + offset; }
+    else if (side === 1) { x = width; y = Math.random() * height * 0.6 + height * 0.2 + offset; }
+    else if (side === 2) { x = Math.random() * width * 0.6 + width * 0.2 + offset; y = 0; }
+    else { x = Math.random() * width * 0.6 + width * 0.2 + offset; y = height; }
+  }
 
   let type = "normal";
   if (selectedMode === "survival") {
@@ -472,35 +492,12 @@ function update() {
       if (waveTimer <= 0) startNextWave();
 
     } else if (wavePhase === "spawning") {
-      if (currentGroup < spawnGroups.length) {
-        const group = spawnGroups[currentGroup];
-
-        if (groupPhase === "pause") {
-          groupPauseTimer--;
-          if (groupPauseTimer <= 0) {
-            groupPhase = "spawning";
-            groupSpawnQueue = group.count;
-            groupSpawnTimer = 0;
-            groupSpawnInterval = group.interval;
-          }
-        } else if (groupPhase === "spawning") {
-          if (groupSpawnQueue > 0) {
-            groupSpawnTimer--;
-            if (groupSpawnTimer <= 0) {
-              // Spread offset: each monkey in the group gets a nudge so they don't stack
-              const spreadIndex = group.count - groupSpawnQueue;
-              const spreadOffset = (spreadIndex - group.count / 2) * 55;
-              spawnMonkey(group.side, spreadOffset);
-              groupSpawnQueue--;
-              groupSpawnTimer = groupSpawnInterval;
-            }
-          } else {
-            currentGroup++;
-            groupPhase = "pause";
-            groupPauseTimer = currentGroup < spawnGroups.length
-              ? spawnGroups[currentGroup].pause
-              : 0;
-          }
+      if (clockSpawnIndex < clockPositions.length) {
+        clockSpawnTimer--;
+        if (clockSpawnTimer <= 0) {
+          spawnMonkey(undefined, undefined, clockPositions[clockSpawnIndex]);
+          clockSpawnIndex++;
+          clockSpawnTimer = CLOCK_SPAWN_INTERVAL;
         }
       } else {
         if (monkeys.length === 0) {
