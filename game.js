@@ -206,7 +206,7 @@ function resetGame() {
   waveMessage = "";
   clockPositions = [];
   clockSpawnIndex = 0;
-  clockSpawnTimer = 0;
+  clockSpawnTimer = CLOCK_SPAWN_INTERVAL;
 
   restartBtn.style.display = "none";
   shareBtn.style.display = "none";
@@ -256,7 +256,7 @@ function startNextWave() {
 
   clockPositions = buildClockPositions();
   clockSpawnIndex = 0;
-  clockSpawnTimer = 0;
+  clockSpawnTimer = CLOCK_SPAWN_INTERVAL;
 }
 
 /* ---------------------------
@@ -264,15 +264,14 @@ function startNextWave() {
 ---------------------------- */
 function spawnMonkey(forceSide, spawnOffset, angle) {
   let x, y;
+  let side = -1; // -1 means clock-based, no side slowdown applies
 
   if (angle !== undefined) {
     // Clock-based spawn: place on the edge of the canvas in the given direction
     const cx = width / 2;
     const cy = height / 2;
-    // Cast a ray from center outward at this angle and find where it hits the edge
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
-    // Find intersection with canvas edges
     const tx = cos !== 0 ? (cos > 0 ? width : 0) : Infinity;
     const ty = sin !== 0 ? (sin > 0 ? height : 0) : Infinity;
     const tEdgeX = cos !== 0 ? (tx - cx) / cos : Infinity;
@@ -281,7 +280,7 @@ function spawnMonkey(forceSide, spawnOffset, angle) {
     x = cx + cos * t;
     y = cy + sin * t;
   } else {
-    const side = forceSide !== undefined ? forceSide : Math.floor(Math.random() * 4);
+    side = forceSide !== undefined ? forceSide : Math.floor(Math.random() * 4);
     const offset = spawnOffset || 0;
     if (side === 0) { x = 0; y = Math.random() * height * 0.6 + height * 0.2 + offset; }
     else if (side === 1) { x = width; y = Math.random() * height * 0.6 + height * 0.2 + offset; }
