@@ -215,7 +215,7 @@ function spawnMonkey() {
   const baseDrawSize = 64;
   const finalDrawSize = Math.round(baseDrawSize * sizeVariation);
 
-  const speedMultiplier = side === 2 ? 0.55 : 1;
+  const speedMultiplier = (side === 2 || side === 3) ? 0.55 : 1;
 
   monkeys.push({
     x: x,
