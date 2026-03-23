@@ -229,16 +229,17 @@ resetGame();
    Each wave also randomises a starting rotation so it feels fresh
 ---------------------------- */
 function buildClockPositions() {
+  // Always use 12 divisions (clock hours) as the base grid
+  // Later waves fill in quarter-hours and beyond gradually
   let divisions;
-  if (waveNumber >= 8) divisions = 48;
-  else if (waveNumber >= 4) divisions = 24;
+  if (waveNumber >= 14) divisions = 48;
+  else if (waveNumber >= 10) divisions = 24;
   else divisions = 12;
 
-  // Cap to a sane number of monkeys per wave
-  const count = Math.min(divisions, 6 + waveNumber * 2);
-  // Pick evenly spaced positions from the full division set
+  // Smooth count ramp: 3 monkeys wave 1, ~12 by wave 8, ~16 by wave 12
+  const count = Math.min(2 + Math.floor(waveNumber * 1.4), divisions);
   const step = divisions / count;
-  const rotationOffset = Math.random() * Math.PI * 2; // random starting angle each wave
+  const rotationOffset = Math.random() * Math.PI * 2;
 
   const positions = [];
   for (let i = 0; i < count; i++) {
