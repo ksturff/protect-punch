@@ -304,12 +304,26 @@ function spawnMonkey(forceSide, spawnOffset, angle) {
 
   const speedMultiplier = (side === 2 || side === 3) ? 0.55 : 1;
 
+  // For clock-based spawns, apply slow zones at top (11-1) and bottom (5-7)
+  // 12 o'clock = -PI/2, so top zone is roughly -PI/2 ± PI/6 (11-1)
+  // bottom zone is PI/2 ± PI/6 (5-7)
+  let clockMultiplier = 1;
+  if (angle !== undefined) {
+    const norm = ((angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); // 0 to 2PI
+    const top = Math.PI * 1.5; // 12 o'clock in canvas coords (270°)
+    const bot = Math.PI * 0.5; // 6 o'clock (90°)
+    const zone = Math.PI / 3; // 60° either side = 11-1 and 5-7
+    const distTop = Math.min(Math.abs(norm - top), Math.PI * 2 - Math.abs(norm - top));
+    const distBot = Math.abs(norm - bot);
+    if (distTop < zone || distBot < zone) clockMultiplier = 0.55;
+  }
+
   let monkeySpeed;
   if (selectedMode === "survival") {
     monkeySpeed = (type === "fast" ? speed * 1.2 : speed) * speedMultiplier;
   } else {
     monkeySpeed = Math.min(
-      (type === "fast" ? speed_global * 1.15 : speed_global) * speedMultiplier,
+      (type === "fast" ? speed_global * 1.15 : speed_global) * speedMultiplier * clockMultiplier,
       MAX_SPEED
     );
   }
